@@ -78,6 +78,33 @@ Une seule machine Debian (ex. Debian 12) assure trois rôles :
 
 Les logs consolidés envoyés vers Wazuh sont produits dans `/var/log/trusted_ai_soc_lite.log`.
 
+### 3.1 Implémentation du dossier `nmap_scanner`
+
+Le dépôt contient une version prête à l'emploi du dossier `/opt/trusted_ai_soc_lite/nmap_scanner`.
+
+| Fichier / dossier | Rôle |
+| --- | --- |
+| `targets.txt` | Liste des IP/CIDR à scanner (une entrée par ligne). |
+| `run_scan.sh` | Script principal : lance `nmap`, stocke le rapport XML puis appelle le parser Python. |
+| `parse_nmap.py` | Convertit le rapport XML en JSON structuré (metadata + hosts/services). |
+| `reports/` | Destination des rapports `scan_YYYY-MM-DD_HHMMSS.{xml,json}`. |
+
+#### Utilisation
+
+1. Copier le dossier dans `/opt/trusted_ai_soc_lite/` (ou créer un lien symbolique).
+2. Adapter `targets.txt` à votre périmètre.
+3. Lancer un scan ponctuel :
+
+   ```bash
+   cd /opt/trusted_ai_soc_lite/nmap_scanner
+   ./run_scan.sh
+   ```
+
+   - Le script exige `nmap` et `python3`.
+   - Les rapports sont placés dans `reports/` et prêts à être ingérés par `ai_engine/analyse_scan.py`.
+
+4. Pour une exécution régulière, ajouter une entrée cron ou un service `systemd` qui exécute `run_scan.sh`.
+
 ## 4. Flux détaillé
 
 ### 4.1 Scan réseau (Nmap)
