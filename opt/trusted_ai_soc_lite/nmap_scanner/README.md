@@ -248,6 +248,41 @@ nmap -sV -sC -O --osscan-guess -T4 \
   d'authentification et quelques scénarios d'exploitation non destructifs.
 - C'est le profil par défaut utilisé par `run_scan.sh`.
 
+## Comprendre les avertissements « sendto: Network is unreachable »
+
+Lorsque vous scannez un sous-réseau complet (`192.168.1.0/24` par exemple),
+certains scripts NSE "broadcast" découvrent des adresses supplémentaires via
+IGMP/MDNS/UPnP. Nmap essaie alors de contacter ces hôtes, mais si votre machine
+n'a pas de route valide (ou si l'hôte a quitté le réseau), le noyau renvoie :
+
+```
+sendto in send_ip_packet_sd: sendto(5, ..., 192.168.1.172, 28728) => Network is unreachable
+```
+
+💡 **Ce n'est pas une erreur fatale.** Le scan continue, les rapports XML/JSON
+sont générés et les services réellement accessibles (ex. `127.0.0.1`, votre IP
+locale, les hôtes actifs) sont analysés normalement.
+
+Pour vérifier que tout fonctionne :
+
+1. Observez les messages `[INFO]` / `[OK]` en fin de `run_scan.sh` ;
+2. Vérifiez que `reports/full_soc_scan_*.xml` et `*.json` existent et
+   contiennent vos hôtes ;
+3. Contrôlez la présence des sections `PORT`, `Service Info`, `Host script
+   results`, etc. dans la sortie Nmap.
+
+Si vous souhaitez réduire le bruit :
+
+- Limitez `targets.txt` à des IP connues et accessibles ;
+- Exportez `AUTO_TARGET_DISCOVERY=0` pour empêcher l'ajout automatique
+  d'adresses ;
+- Ajustez le profil (ex. supprimer `broadcast-*` des scripts NSE) si vous
+  n'avez pas besoin de découverte passive.
+
+Ces messages deviennent utiles lorsqu'ils changent soudainement (ex. un nouvel
+hôte 192.168.1.180 apparaît puis disparaît), car ils reflètent l'activité
+réseau détectée par les scripts.
+
 ## Tests & validations
 
 - **Test à blanc** : ajoutez `scanme.nmap.org` dans `targets.txt` puis lancez `./run_scan.sh`. Vous devez obtenir un couple de fichiers XML/JSON.
