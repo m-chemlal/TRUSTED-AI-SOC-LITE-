@@ -80,10 +80,15 @@ def convert(xml_path: Path, json_path: Path) -> None:
 
 
 def main(argv: list[str]) -> None:
-    if len(argv) != 3:
-        raise SystemExit(f"Usage: {argv[0]} <scan.xml> <scan.json>")
+    if len(argv) not in {2, 3}:
+        raise SystemExit(f"Usage: {argv[0]} <scan.xml> [scan.json]")
+
     xml_path = Path(argv[1])
-    json_path = Path(argv[2])
+    if len(argv) == 3:
+        json_path = Path(argv[2])
+    else:
+        json_path = xml_path.with_suffix(".json")
+
     convert(xml_path, json_path)
 
 
