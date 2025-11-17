@@ -324,6 +324,15 @@ réseau détectée par les scripts.
 - **Parser seul** : `python3 parse_nmap.py reports/scan_test.xml reports/scan_test.json` pour valider la conversion sur un fichier existant.
 - **Intégration IA** : copiez les fichiers JSON vers `ai_engine/` ou pointez `analyse_scan.py` sur le dossier `reports/` pour vérifier l'enchaînement complet.
 
+### Dépannage rapide
+
+| Symptôme | Cause probable | Correctif |
+| --- | --- | --- |
+| `./run_scan.sh` s'arrête immédiatement avec `[ERREUR] nmap n'est pas installé.` | Le paquet `nmap` n'est pas présent dans la machine (ou pas dans le `PATH`). | Installez-le via `sudo apt install nmap`, puis relancez `nmap --version` pour vérifier. |
+| `python3: command not found` lors de `parse_nmap.py`. | Paquet `python3` manquant. | `sudo apt install python3 python3-venv` puis rejouer le script. |
+| Pas de fichier JSON généré. | Le scan Nmap n'a pas fini (profil trop agressif, hôtes injoignables) ou a été interrompu. | Essayez `SCAN_PROFILE=fast ./run_scan.sh` pour valider la chaîne, puis revenez à `full`. Vérifiez aussi que les hôtes listés dans `targets.txt` sont atteignables. |
+| Messages `sendto ... Network is unreachable` en boucle. | Des IP découvertes via broadcast ne sont pas routables depuis votre machine. | Normal : limitez `targets.txt` ou exportez `AUTO_TARGET_DISCOVERY=0` si vous ne souhaitez que vos cibles manuelles. |
+
 ## Automatisation (optionnel)
 
 Pour exécuter le scan chaque heure via cron :
