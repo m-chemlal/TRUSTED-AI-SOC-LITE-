@@ -117,7 +117,6 @@ def build_entries(infos: Iterable[InterfaceInfo], include_public_test: bool) -> 
         "",
         "# Loopback (toujours accessible)",
         "127.0.0.1",
-        "localhost",
         "",
     ]
 

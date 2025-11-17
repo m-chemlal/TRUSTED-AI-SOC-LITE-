@@ -68,6 +68,10 @@ Adaptez `targets.txt` pour votre périmètre (IP uniques, plages CIDR, noms DNS�
   avant de lancer `run_scan.sh` ; le script n'écrasera plus le fichier.
 - Les utilisateurs avancés peuvent aussi appeler `python3 generate_targets.py \
   --output chemin_personnalisé` pour alimenter un fichier différent.
+- Pour éviter les **doublons** dans les rapports Nmap, le générateur n'ajoute
+  plus `localhost` par défaut ; la cible `127.0.0.1` couvre déjà le loopback.
+  Ajoutez-la manuellement uniquement si vous avez besoin d'un test DNS
+  explicite.
 
 > ⚠️ Des IP extérieures à votre réseau (ou non routées) conduiront à des échecs
 > de scan. Assurez-vous que chaque entrée correspond bien à un segment reachable
