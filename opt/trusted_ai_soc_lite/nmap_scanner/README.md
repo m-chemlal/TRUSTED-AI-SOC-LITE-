@@ -30,6 +30,31 @@ cd /opt/trusted_ai_soc_lite/nmap_scanner
 
 Adaptez `targets.txt` pour votre périmètre (IP uniques, plages CIDR, noms DNS… une entrée par ligne).
 
+### Comment choisir des cibles valides ?
+
+1. **Identifiez votre adresse IP locale** :
+
+   ```bash
+   ip -4 a
+   ```
+
+   Relevez la ligne `inet` correspondant à votre interface (ex. `inet 192.168.1.5/24`).
+
+2. **Déduisez le sous-réseau** : l'exemple ci-dessus signifie que vous pouvez scanner
+   `192.168.1.0/24` (hôtes `192.168.1.1` à `192.168.1.254`).
+
+3. **Remplissez `targets.txt` avec des adresses atteignables** depuis votre machine :
+   - `127.0.0.1` (loopback) et votre IP locale (autoscan sûrs) ;
+   - autres hôtes de votre LAN ou accessibles via VPN/route ;
+   - plages CIDR ou noms DNS résolvables.
+
+4. **Option facultative** : ajoutez `scanme.nmap.org`, la cible de test officielle
+   d'Nmap, pour valider rapidement vos scripts.
+
+> ⚠️ Des IP extérieures à votre réseau (ou non routées) conduiront à des échecs
+> de scan. Assurez-vous que chaque entrée correspond bien à un segment reachable
+> depuis votre Debian.
+
 ## Utilisation rapide
 
 ```bash
