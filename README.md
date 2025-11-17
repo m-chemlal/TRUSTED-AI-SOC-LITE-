@@ -5,6 +5,27 @@ Cette version du projet TRUSTED AI SOC LITE supprime Docker pour se concentrer s
 nativement tout en conservant l'idée d'un SOC autonome mêlant détection IA et orchestration de
 réponse.
 
+## 0. Mise en route rapide (clonage + dépendances)
+
+1. **Cloner le dépôt** sur une machine Debian disposant d'un accès root :
+   ```bash
+   cd /opt
+   sudo git clone https://github.com/<votre-espace>/TRUSTED-AI-SOC-LITE-.git trusted_ai_soc_lite_repo
+   cd trusted_ai_soc_lite_repo
+   ```
+2. **Installer les paquets requis** (outils de base + scanner) :
+   ```bash
+   sudo apt update
+   sudo apt install git nmap python3 python3-venv
+   ```
+3. **Déployer la structure** `/opt/trusted_ai_soc_lite/` (si vous n'utilisez pas déjà ce dépôt comme racine) :
+   ```bash
+   sudo mkdir -p /opt/trusted_ai_soc_lite
+   sudo rsync -av opt/trusted_ai_soc_lite/ /opt/trusted_ai_soc_lite/
+   ```
+4. **Configurer chaque brique** (scanner, IA, Wazuh, réponse). Le dossier `opt/trusted_ai_soc_lite/nmap_scanner`
+   possède désormais son propre `README.md` avec toutes les commandes pour lancer, tester et automatiser les scans Nmap.
+
 ## 1. Architecture logique
 
 ```
