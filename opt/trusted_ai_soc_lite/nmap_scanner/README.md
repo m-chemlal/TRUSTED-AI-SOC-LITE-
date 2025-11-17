@@ -43,6 +43,68 @@ Le script :
 3. génère `reports/full_soc_scan_YYYY-MM-DD_HHMMSS.xml` puis appelle `parse_nmap.py` (qui écrit automatiquement le JSON associé) ;
 4. livre un rapport prêt à être ingéré par l'IA et Wazuh.
 
+### Structure des rapports JSON produits
+
+`parse_nmap.py` enrichit maintenant la sortie avec les résultats NSE, ce qui
+permet d'exploiter immédiatement les preuves de vulnérabilités dans l'IA.
+
+```jsonc
+{
+  "metadata": {
+    "scanner": "nmap",
+    "args": "...",
+    "start": "2025-11-17T14:05:00Z",
+    "elapsed": 32.51,
+    "hosts_up": 1,
+    "hosts_total": 1,
+    "scan_type": "syn"
+  },
+  "hosts": [
+    {
+      "address": "192.168.1.10",
+      "hostname": "server-lab",
+      "status": "up",
+      "os": "Linux 5.10",
+      "accuracy": 93,
+      "services": [
+        {
+          "protocol": "tcp",
+          "portid": "22",
+          "state": "open",
+          "service": {"name": "ssh", "product": "OpenSSH", "version": "7.4"},
+          "scripts": [
+            {
+              "id": "ssh2-enum-algos",
+              "output": "(truncated)",
+              "elements": [...],
+              "tables": [...]
+            }
+          ]
+        }
+      ],
+      "scripts": [
+        {
+          "id": "vulners",
+          "output": "CVE-2021-41773 (CVSS 7.5)",
+          "tables": [{"cve": "CVE-2021-41773", "cvss": "7.5"}]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Chaque bloc `scripts` contient :
+
+- `id` : identifiant du script NSE exécuté ;
+- `output` : synthèse textuelle affichée par Nmap ;
+- `elements` : liste clé/valeur simple (utile pour les flags booléens) ;
+- `tables` : dictionnaires imbriqués lorsque Nmap fournit des tableaux (ex. CVE,
+  suites TLS, comptes anonymes, etc.).
+
+Ces informations alimentent directement les features IA (CVE détectées, suites
+faibles, anonymat FTP, etc.) sans avoir à relancer Nmap.
+
 ## Ce que vous pouvez faire avec ce dépôt Nmap
 
 Ce module constitue la **brique "collecte réseau"** du projet TRUSTED AI SOC LITE. Une

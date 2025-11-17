@@ -7,10 +7,64 @@ import sys
 import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 
-def parse_services(host_elem: ET.Element) -> list[dict]:
-    services: list[dict] = []
+def parse_table(table_elem: ET.Element) -> dict[str, Any]:
+    """Convertit récursivement les blocs <table> des scripts NSE en dictionnaire."""
+
+    parsed: dict[str, Any] = {}
+    # Les éléments simples sont stockés sous forme clé/valeur.
+    for elem in table_elem.findall("elem"):
+        key = elem.attrib.get("key") or "items"
+        value = (elem.text or "").strip() or None
+        if key in parsed:
+            # Normalise en liste si plusieurs entrées partagent la même clé.
+            if not isinstance(parsed[key], list):
+                parsed[key] = [parsed[key]]
+            parsed[key].append(value)
+        else:
+            parsed[key] = value
+
+    # Les sous-tables deviennent elles-mêmes des dictionnaires imbriqués.
+    for sub_table in table_elem.findall("table"):
+        key = sub_table.attrib.get("key") or "tables"
+        value = parse_table(sub_table)
+        if key in parsed:
+            if not isinstance(parsed[key], list):
+                parsed[key] = [parsed[key]]
+            parsed[key].append(value)
+        else:
+            parsed[key] = value
+
+    return parsed
+
+
+def parse_script_blocks(parent: ET.Element | None) -> list[dict[str, Any]]:
+    if parent is None:
+        return []
+
+    scripts: list[dict[str, Any]] = []
+    for script in parent.findall("script"):
+        scripts.append(
+            {
+                "id": script.attrib.get("id"),
+                "output": script.attrib.get("output"),
+                "elements": [
+                    {
+                        "key": elem.attrib.get("key"),
+                        "value": (elem.text or "").strip() or None,
+                    }
+                    for elem in script.findall("elem")
+                ],
+                "tables": [parse_table(table) for table in script.findall("table")],
+            }
+        )
+    return scripts
+
+
+def parse_services(host_elem: ET.Element) -> list[dict[str, Any]]:
+    services: list[dict[str, Any]] = []
     ports_elem = host_elem.find("ports")
     if ports_elem is None:
         return services
@@ -30,6 +84,7 @@ def parse_services(host_elem: ET.Element) -> list[dict]:
                     if service_elem is not None
                     else None
                 ),
+                "scripts": parse_script_blocks(port),
             }
         )
     return services
@@ -46,6 +101,7 @@ def parse_host(host_elem: ET.Element) -> dict:
         "os": osmatch.attrib.get("name") if osmatch is not None else None,
         "accuracy": int(osmatch.attrib.get("accuracy", 0)) if osmatch is not None else None,
         "services": parse_services(host_elem),
+        "scripts": parse_script_blocks(host_elem.find("hostscript")),
     }
 
 
