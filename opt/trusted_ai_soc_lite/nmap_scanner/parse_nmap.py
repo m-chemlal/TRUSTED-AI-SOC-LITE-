@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -55,11 +55,18 @@ def convert(xml_path: Path, json_path: Path) -> None:
     run_stats = root.find("runstats/finished")
     scan_info = root.find("scaninfo")
 
+    start_attr = root.attrib.get("start")
+    start_dt = (
+        datetime.fromtimestamp(int(start_attr), tz=UTC).isoformat().replace("+00:00", "Z")
+        if start_attr is not None
+        else None
+    )
+
     payload = {
         "metadata": {
             "scanner": root.attrib.get("scanner"),
             "args": root.attrib.get("args"),
-            "start": datetime.utcfromtimestamp(int(root.attrib.get("start", "0"))).isoformat() + "Z",
+            "start": start_dt,
             "elapsed": float(run_stats.attrib.get("elapsed", 0)) if run_stats is not None else None,
             "hosts_up": int(run_stats.attrib.get("hosts_up", 0)) if run_stats is not None else None,
             "hosts_total": int(run_stats.attrib.get("hosts_total", 0)) if run_stats is not None else None,
