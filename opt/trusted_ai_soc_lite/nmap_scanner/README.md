@@ -49,7 +49,25 @@ Adaptez `targets.txt` pour votre périmètre (IP uniques, plages CIDR, noms DNS�
    - plages CIDR ou noms DNS résolvables.
 
 4. **Option facultative** : ajoutez `scanme.nmap.org`, la cible de test officielle
-   d'Nmap, pour valider rapidement vos scripts.
+  d'Nmap, pour valider rapidement vos scripts.
+
+### Génération automatique d'un `targets.txt` valide
+
+- Le script `generate_targets.py` détecte vos interfaces IPv4 et écrit un
+  `targets.txt` aligné sur votre machine (loopback, IP locale, sous-réseau et,
+  si souhaité, `scanme.nmap.org`).
+- `run_scan.sh` l'exécute automatiquement avant chaque scan. Pour une
+  génération manuelle :
+
+  ```bash
+  cd /opt/trusted_ai_soc_lite/nmap_scanner
+  python3 generate_targets.py --force
+  ```
+
+- Si vous voulez garder votre propre liste, exportez `AUTO_TARGET_DISCOVERY=0`
+  avant de lancer `run_scan.sh` ; le script n'écrasera plus le fichier.
+- Les utilisateurs avancés peuvent aussi appeler `python3 generate_targets.py \
+  --output chemin_personnalisé` pour alimenter un fichier différent.
 
 > ⚠️ Des IP extérieures à votre réseau (ou non routées) conduiront à des échecs
 > de scan. Assurez-vous que chaque entrée correspond bien à un segment reachable

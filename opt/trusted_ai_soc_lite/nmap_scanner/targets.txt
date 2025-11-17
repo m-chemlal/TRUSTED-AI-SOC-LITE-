@@ -1,19 +1,8 @@
-# Liste des cibles à scanner (une IP, un CIDR ou un hostname par ligne)
-# ⚠️ Remplacez les exemples ci-dessous par les hôtes réellement accessibles
-# depuis VOTRE machine Debian (même sous-réseau, VPN ou route existante).
+# Ce fichier est géré automatiquement par generate_targets.py.
+# L'exécution par défaut de run_scan.sh régénère son contenu avec les IP / réseaux
+# détectés sur cette machine Debian. Exportez AUTO_TARGET_DISCOVERY=0 avant d'exécuter
+# run_scan.sh si vous souhaitez conserver une version manuelle.
 #
-# Pour connaître votre IP et votre réseau, exécutez : ip -4 a
-# Exemple de sortie : inet 192.168.1.5/24 ...  → réseau 192.168.1.0/24
-# Vous pouvez toujours vous scanner vous-même (loopback + IP locale).
-
-# Loopback (toujours accessible)
-127.0.0.1
-
-# Adresse IP locale de votre machine (à adapter)
-192.168.1.5
-
-# Sous-réseau complet correspondant à votre interface (à adapter)
-192.168.1.0/24
-
-# Cible publique sûre fournie par les auteurs de Nmap (facultatif)
-scanme.nmap.org
+# Exécutez manuellement :
+#   python3 generate_targets.py --force
+# pour recalculer les cibles.
