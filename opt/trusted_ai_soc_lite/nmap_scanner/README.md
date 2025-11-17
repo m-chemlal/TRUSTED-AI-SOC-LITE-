@@ -90,6 +90,41 @@ Le script :
 3. génère `reports/full_soc_scan_YYYY-MM-DD_HHMMSS.xml` puis appelle `parse_nmap.py` (qui écrit automatiquement le JSON associé) ;
 4. livre un rapport prêt à être ingéré par l'IA et Wazuh.
 
+### Choisir un profil de scan adapté
+
+`run_scan.sh` embarque désormais trois profils sélectionnables via la variable
+d'environnement `SCAN_PROFILE` :
+
+| Profil | Commande d'exemple | Cas d'usage | Options clés |
+| --- | --- | --- | --- |
+| `full` *(défaut)* | `SCAN_PROFILE=full ./run_scan.sh` | SOC complet, collecte maximale (tous les ports, scripts `default,vuln,exploit,auth,malware,brute,safe`). | `-p-`, `--script-timeout 20s`, `--max-retries 2`, `--host-timeout 10m` pour éviter les blocages tout en conservant la couverture totale. |
+| `balanced` | `SCAN_PROFILE=balanced ./run_scan.sh` | Compromis ~5 min : ports 1-1024 + scripts `default,vuln,auth,malware,safe`. | Timeout NSE 15s, host-timeout 2 min. |
+| `fast` | `SCAN_PROFILE=fast ./run_scan.sh` | Contrôle rapide (<2 min) basé sur les 200 ports principaux et des scripts sûrs. | Timeout NSE 10s, host-timeout 45s. |
+
+Le profil **FULL_SOC** conserve l'intégralité des scripts agressifs requis par le
+projet (brute force, exploit, auth, malware). Les garde-fous (`--script-timeout`,
+`--max-retries`, `--host-timeout`) garantissent simplement que l'exécution se
+termine et que `parse_nmap.py` peut générer le JSON, même si certains hôtes
+répondent mal.
+
+### Ajuster finement les options
+
+- `FULL_SCRIPT_TIMEOUT`, `FULL_MAX_RETRIES` et `FULL_HOST_TIMEOUT` peuvent être
+  surchargés pour rallonger ou réduire les garde-fous sans perdre le profil
+  complet :
+
+  ```bash
+  FULL_HOST_TIMEOUT=20m FULL_SCRIPT_TIMEOUT=45s SCAN_PROFILE=full ./run_scan.sh
+  ```
+
+- `EXTRA_NMAP_ARGS="--min-parallelism 32" ./run_scan.sh` ajoute dynamiquement des
+  options supplémentaires.
+- Les profils `fast`/`balanced` exposent aussi leurs overrides (`FAST_TOP_PORTS`,
+  `BALANCED_PORT_RANGE`, etc.).
+
+Résultat : vous pouvez choisir la vitesse désirée tout en conservant, par
+défaut, le scan FULL SOC demandé.
+
 ### Structure des rapports JSON produits
 
 `parse_nmap.py` enrichit maintenant la sortie avec les résultats NSE, ce qui
