@@ -26,6 +26,37 @@ réponse.
 4. **Configurer chaque brique** (scanner, IA, Wazuh, réponse). Le dossier `opt/trusted_ai_soc_lite/nmap_scanner`
    possède désormais son propre `README.md` avec toutes les commandes pour lancer, tester et automatiser les scans Nmap.
 
+### 🎬 Pilotage automatique (nouveau `run_all.sh`)
+
+Lorsque tout est en place dans `/opt/trusted_ai_soc_lite/`, vous pouvez exécuter **tout le SOC** avec
+une seule commande :
+
+```bash
+cd /opt/trusted_ai_soc_lite
+./run_all.sh --profile full
+```
+
+Ce wrapper :
+
+1. régénère les cibles (`generate_targets.py`),
+2. lance `nmap_scanner/run_scan.sh` (profil FAST/BALANCED/FULL/AGGRESSIVE),
+3. déclenche automatiquement l'IA + XAI + Threat Intelligence,
+4. orchestre la réponse (`response_engine/responder.py`),
+5. met à jour les journaux/audits surveillés par Wazuh,
+6. peut démarrer le dashboard Streamlit (`--dashboard`) et/ou boucler périodiquement (`--loop 900`).
+
+Options utiles :
+
+| Option | Effet |
+| --- | --- |
+| `--profile fast` | Utilise le preset FAST (ports principaux, scripts sûrs). |
+| `--dashboard --keep-dashboard` | Lance Streamlit en arrière-plan et le laisse actif après le scan. |
+| `--loop 1800` | Relance le pipeline toutes les 30 minutes. |
+| `--openvas --openvas-args "--user gvm --password *****"` | Chaîne un scan Greenbone avant Nmap. |
+| `--dry-run` | Affiche les commandes résolues sans rien exécuter (utile pour valider la config). |
+
+Toutes les options sont détaillées via `./run_all.sh --help`.
+
 ## 1. Architecture logique
 
 ```

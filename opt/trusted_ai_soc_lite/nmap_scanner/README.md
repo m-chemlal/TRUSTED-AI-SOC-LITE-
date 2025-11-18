@@ -90,6 +90,11 @@ Le script :
 3. génère `reports/full_soc_scan_YYYY-MM-DD_HHMMSS.xml` puis appelle `parse_nmap.py` (qui écrit automatiquement le JSON associé) ;
 4. livre un rapport prêt à être ingéré par l'IA et Wazuh.
 
+💡 Pour tout déclencher depuis la racine du projet (scan + IA + TI + réponse + dashboard),
+utilisez simplement `../run_all.sh`. Ce wrapper configure les mêmes variables
+(`SCAN_PROFILE`, `AI_AUTORUN`, `RESPONSE_AUTORUN`, etc.), peut lancer OpenVAS avant
+Nmap et redémarre la boucle selon `--loop <secondes>`.
+
 ### Choisir un profil de scan adapté
 
 `run_scan.sh` embarque désormais trois profils sélectionnables via la variable
