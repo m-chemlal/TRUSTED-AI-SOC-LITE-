@@ -1,0 +1,22 @@
+<decoder name="trusted_ai_soc_lite_base">
+  <decode_as>json</decode_as>
+  <plugin_decoder>json</plugin_decoder>
+</decoder>
+
+<decoder name="trusted_ai_soc_lite_fields">
+  <parent>trusted_ai_soc_lite_base</parent>
+  <json_path>host</json_path>
+  <regex>.*</regex>
+</decoder>
+
+<decoder name="trusted_ai_soc_lite_risk">
+  <parent>trusted_ai_soc_lite_base</parent>
+  <json_path>risk_level</json_path>
+  <regex>.*</regex>
+</decoder>
+
+<decoder name="trusted_ai_soc_lite_score">
+  <parent>trusted_ai_soc_lite_base</parent>
+  <json_path>risk_score</json_path>
+  <regex>.*</regex>
+</decoder>
