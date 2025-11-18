@@ -16,6 +16,17 @@ AI_MODEL_PATH="${AI_MODEL_PATH:-${AI_ENGINE_DIR}/models/model.pkl}"
 AI_LOG_FILE="${AI_LOG_FILE:-${AI_ENGINE_DIR}/logs/ia_events.log}"
 AI_WAZUH_LOG="${AI_WAZUH_LOG:-/var/log/trusted_ai_soc_lite.log}"
 AI_AUDIT_FILE="${AI_AUDIT_FILE:-${PROJECT_ROOT}/audit/ia_decisions.json}"
+RESPONSE_AUTORUN="${RESPONSE_AUTORUN:-0}"
+RESPONSE_ENGINE_DIR="${RESPONSE_ENGINE_DIR:-${PROJECT_ROOT}/response_engine}"
+RESPONDER_SCRIPT="${RESPONDER_SCRIPT:-${RESPONSE_ENGINE_DIR}/responder.py}"
+RESPONSE_ACTIONS_LOG="${RESPONSE_ACTIONS_LOG:-${RESPONSE_ENGINE_DIR}/actions.log}"
+RESPONSE_AUDIT_FILE="${RESPONSE_AUDIT_FILE:-${PROJECT_ROOT}/audit/response_actions.json}"
+RESPONDER_STATE_FILE="${RESPONDER_STATE_FILE:-${RESPONSE_ENGINE_DIR}/.responder_state.json}"
+RESPONDER_EXTRA_ARGS="${RESPONDER_EXTRA_ARGS:-}"
+RESPONDER_DISABLE_EMAIL="${RESPONDER_DISABLE_EMAIL:-0}"
+RESPONDER_DISABLE_UFW="${RESPONDER_DISABLE_UFW:-0}"
+RESPONDER_DRY_RUN="${RESPONDER_DRY_RUN:-0}"
+RESPONSE_ALERT_EMAIL="${RESPONSE_ALERT_EMAIL:-${SOC_ALERT_EMAIL:-}}"
 
 if ! command -v nmap >/dev/null 2>&1; then
   echo "[ERREUR] nmap n'est pas installé.\nInstallez-le via: sudo apt install nmap" >&2
@@ -162,6 +173,47 @@ else
   else
     echo "[INFO] AI_AUTORUN=0 → analyse IA automatique désactivée"
   fi
+fi
+
+if [ "${RESPONSE_AUTORUN}" = "1" ]; then
+  if [ ! -f "${RESPONDER_SCRIPT}" ]; then
+    echo "[AVERTISSEMENT] ${RESPONDER_SCRIPT} introuvable → saut de la réponse automatique" >&2
+  else
+    echo "[INFO] Déclenchement du responder automatique"
+    RESPONDER_CMD=(
+      python3 "${RESPONDER_SCRIPT}"
+      --ai-log "${AI_LOG_FILE}"
+      --actions-log "${RESPONSE_ACTIONS_LOG}"
+      --audit-file "${RESPONSE_AUDIT_FILE}"
+      --state-file "${RESPONDER_STATE_FILE}"
+    )
+    if [ -n "${RESPONSE_ALERT_EMAIL}" ]; then
+      RESPONDER_CMD+=(--mailto "${RESPONSE_ALERT_EMAIL}")
+    else
+      RESPONDER_CMD+=(--disable-email)
+    fi
+    if [ "${RESPONDER_DISABLE_EMAIL}" = "1" ]; then
+      RESPONDER_CMD+=(--disable-email)
+    fi
+    if [ "${RESPONDER_DISABLE_UFW}" = "1" ]; then
+      RESPONDER_CMD+=(--disable-ufw)
+    fi
+    if [ "${RESPONDER_DRY_RUN}" = "1" ]; then
+      RESPONDER_CMD+=(--dry-run)
+    fi
+    if [ -n "${RESPONDER_EXTRA_ARGS}" ]; then
+      # shellcheck disable=SC2206
+      EXTRA_RESPONDER_ARGS=(${RESPONDER_EXTRA_ARGS})
+      RESPONDER_CMD+=("${EXTRA_RESPONDER_ARGS[@]}")
+    fi
+    if "${RESPONDER_CMD[@]}"; then
+      echo "[OK] Actions de réponse orchestrées"
+    else
+      echo "[AVERTISSEMENT] Le responder automatique a rencontré une erreur" >&2
+    fi
+  fi
+else
+  echo "[INFO] RESPONSE_AUTORUN=0 → réponse automatique désactivée"
 fi
 
 echo "[OK] Rapports enregistrés dans ${REPORT_DIR}"

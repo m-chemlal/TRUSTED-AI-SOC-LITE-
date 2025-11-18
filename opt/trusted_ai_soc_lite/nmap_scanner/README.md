@@ -159,6 +159,25 @@ défaut, le scan FULL SOC demandé.
 - En cas d'erreur IA, le scanner affiche un message explicite mais conserve les
   rapports XML/JSON pour permettre le diagnostic.
 
+### Réponse automatique (response_engine)
+
+- Exportez `RESPONSE_AUTORUN=1` pour lancer `../response_engine/responder.py`
+  juste après l'analyse IA.
+- Par défaut, le responder lit `ai_engine/logs/ia_events.log`, applique la
+  politique (blocage UFW, e-mail) puis met à jour `../audit/response_actions.json`.
+- Variables utiles :
+
+  | Variable | Effet |
+  | --- | --- |
+  | `RESPONSE_ENGINE_DIR` / `RESPONDER_SCRIPT` | Chemins personnalisés du responder. |
+  | `RESPONSE_ALERT_EMAIL` ou `SOC_ALERT_EMAIL` | Destinataire des alertes `high/critical`. |
+  | `RESPONDER_DISABLE_EMAIL` / `RESPONDER_DISABLE_UFW` | Désactive un canal lors des tests. |
+  | `RESPONDER_DRY_RUN` | Simule les actions (utile sur un poste sans `ufw`). |
+  | `RESPONDER_EXTRA_ARGS` | Ajoute des arguments supplémentaires (`"--mailto csirt@example.com"`). |
+
+- Les actions réalisées apparaissent dans
+  `response_engine/actions.log` et `audit/response_actions.json`.
+
 ### Structure des rapports JSON produits
 
 `parse_nmap.py` enrichit maintenant la sortie avec les résultats NSE, ce qui

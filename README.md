@@ -88,6 +88,11 @@ Une seule machine Debian (ex. Debian 12) assure trois rôles :
 │   ├── analyse_scan.py
 │   ├── models/
 │   └── logs/
+├── wazuh/
+│   ├── ossec.local.conf
+│   ├── decoders/
+│   ├── rules/
+│   └── active-response/
 ├── response_engine/
 │   ├── responder.py
 │   ├── ufw_actions.sh
@@ -169,6 +174,43 @@ Chaque événement IA ressemble à :
 
 Il suffit ensuite de déclarer `/var/log/trusted_ai_soc_lite.log` dans Wazuh (`<localfile>`), de créer un decoder JSON et d'écrire les règles/Active Responses alignées sur `risk_score` ou `risk_level`.
 
+### 3.3 Pack Wazuh prêt à l'emploi
+
+Le dossier `opt/trusted_ai_soc_lite/wazuh` fournit tous les fichiers nécessaires pour intégrer rapidement l'IA au SIEM :
+
+| Fichier | Description |
+| --- | --- |
+| `ossec.local.conf` | Snippet `<localfile>` à inclure sur l'agent pour surveiller `/var/log/trusted_ai_soc_lite.log`. |
+| `decoders/trusted_ai_soc_lite_decoder.xml` | Decoder JSON côté manager exposant les champs `host`, `risk_level`, `risk_score`. |
+| `rules/trusted_ai_soc_lite_rules.xml` | Règles 88001–88004 qui mappent les niveaux IA sur des niveaux Wazuh (LOW→3, MED→6, HIGH→10, CRIT→12). |
+| `active-response/trusted_ai_block.sh` | Exemple de réponse automatique bloquant l'IP via `ufw` et journalisant l'action dans `response_engine/actions.log`. |
+
+Copiez ces fichiers vers `/var/ossec/` (agent + manager), rendez le script exécutable puis redémarrez `wazuh-agent` et `wazuh-manager`. Une fois `run_scan.sh` exécuté, les alertes IA apparaîtront dans le Dashboard Wazuh et pourront déclencher la réponse automatique.
+
+### 3.4 Orchestrateur de réponse `response_engine`
+
+Le dossier `opt/trusted_ai_soc_lite/response_engine` ferme la boucle SOC en
+exécutant des actions défensives à partir des décisions IA :
+
+| Fichier | Description |
+| --- | --- |
+| `responder.py` | Lit `ai_engine/logs/ia_events.log`, applique la politique (blocage UFW, mail, simple journalisation) et enrichit `audit/response_actions.json`. |
+| `ufw_actions.sh` | Helper Bash qui bloque/débloque une IP et écrit un journal horodaté dans `response_engine/actions.log`. |
+| `mailer.py` | Envoi SMTP minimaliste (`SOC_SMTP_*`, `SOC_ALERT_EMAIL`) pour prévenir l'équipe SOC. |
+
+`run_scan.sh` peut déclencher automatiquement le responder via `RESPONSE_AUTORUN=1`.
+Les paramètres principaux sont :
+
+| Variable | Effet |
+| --- | --- |
+| `RESPONSE_ALERT_EMAIL` (ou `SOC_ALERT_EMAIL`) | Adresse notifiée pour les niveaux `high/critical`. |
+| `RESPONDER_DISABLE_EMAIL` / `RESPONDER_DISABLE_UFW` | Désactivation sélective des canaux (utile en labo ou en mode démonstration). |
+| `RESPONDER_DRY_RUN` | Simule les actions sans toucher UFW ni SMTP mais conserve les journaux/audits. |
+| `RESPONDER_EXTRA_ARGS` | Permet de passer n'importe quelle option supplémentaire à `responder.py` (par exemple `"--mailto csirt@example.com --disable-ufw"`). |
+
+Les actions réalisées (blocage, notification, log) sont conservées dans
+`audit/response_actions.json`, ce qui facilite l'audit du SOC.
+
 ## 4. Flux détaillé
 
 ### 4.1 Scan réseau (Nmap)
@@ -203,10 +245,13 @@ Exemple :
 ### 4.3 Intégration Wazuh
 
 1. Wazuh Agent surveille `/var/log/trusted_ai_soc_lite.log` via `<localfile>` dans `/var/ossec/etc/ossec.conf`.
+   - Un fichier prêt à copier est fourni dans `opt/trusted_ai_soc_lite/wazuh/ossec.local.conf`.
 2. Le Manager fournit un decoder pour parser le JSON et des règles alignées sur `risk_score` ou `label`.
+   - Utilisez `opt/trusted_ai_soc_lite/wazuh/decoders/trusted_ai_soc_lite_decoder.xml` et `.../rules/trusted_ai_soc_lite_rules.xml`.
    - `risk_score > 0.8` → alerte High + tag `AI_VULN_DETECTED`
    - `label = CRITICAL` → déclenchement d'active response
 3. Les alertes sont stockées dans l'indexer et visibles via le Dashboard.
+4. Un exemple d'Active Response (`active-response/trusted_ai_block.sh`) montre comment bloquer automatiquement l'adresse IP lorsque `risk_level = critical`.
 
 ### 4.4 Réponse automatique
 
