@@ -61,38 +61,50 @@ case "${SCAN_PROFILE}" in
     ;;
   full|FULL|Full)
     PROFILE_NAME="FULL_SOC"
-    PROFILE_DESC="scan complet (tous ports + scripts vuln/exploit/brute) avec garde-fous"
+    PROFILE_DESC="scan complet stabilisé (scripts vuln/auth/malware + garde-fous)"
+    FULL_SCRIPT_SETS="${FULL_SCRIPT_SETS:-default,vuln,auth,malware,safe}"
+    if [ "${FULL_INCLUDE_AGGRESSIVE:-0}" = "1" ]; then
+      FULL_SCRIPT_SETS="${FULL_SCRIPT_SETS},exploit,brute"
+    fi
     NMAP_ARGS=(
       -sV
       -sC
       -O
       --osscan-guess
       -T4
-      -p-
-      --script "default,vuln,exploit,auth,malware,brute,safe"
-      --script-args=unsafe=1
+      -p "${FULL_PORT_RANGE:-1-1024}"
+      --script "${FULL_SCRIPT_SETS}"
       --script-timeout "${FULL_SCRIPT_TIMEOUT:-20s}"
       --max-retries "${FULL_MAX_RETRIES:-2}"
-      --host-timeout "${FULL_HOST_TIMEOUT:-10m}"
+      --host-timeout "${FULL_HOST_TIMEOUT:-3m}"
     )
+    if [ "${FULL_INCLUDE_AGGRESSIVE:-0}" = "1" ]; then
+      NMAP_ARGS+=(--script-args=unsafe=1)
+    fi
     ;;
   *)
     echo "[AVERTISSEMENT] SCAN_PROFILE=${SCAN_PROFILE} non reconnu → utilisation du profil FULL_SOC" >&2
     PROFILE_NAME="FULL_SOC"
-    PROFILE_DESC="scan complet (tous ports + scripts vuln/exploit/brute) avec garde-fous"
+    PROFILE_DESC="scan complet stabilisé (scripts vuln/auth/malware + garde-fous)"
+    FULL_SCRIPT_SETS="${FULL_SCRIPT_SETS:-default,vuln,auth,malware,safe}"
+    if [ "${FULL_INCLUDE_AGGRESSIVE:-0}" = "1" ]; then
+      FULL_SCRIPT_SETS="${FULL_SCRIPT_SETS},exploit,brute"
+    fi
     NMAP_ARGS=(
       -sV
       -sC
       -O
       --osscan-guess
       -T4
-      -p-
-      --script "default,vuln,exploit,auth,malware,brute,safe"
-      --script-args=unsafe=1
+      -p "${FULL_PORT_RANGE:-1-1024}"
+      --script "${FULL_SCRIPT_SETS}"
       --script-timeout "${FULL_SCRIPT_TIMEOUT:-20s}"
       --max-retries "${FULL_MAX_RETRIES:-2}"
-      --host-timeout "${FULL_HOST_TIMEOUT:-10m}"
+      --host-timeout "${FULL_HOST_TIMEOUT:-3m}"
     )
+    if [ "${FULL_INCLUDE_AGGRESSIVE:-0}" = "1" ]; then
+      NMAP_ARGS+=(--script-args=unsafe=1)
+    fi
     ;;
 esac
 
