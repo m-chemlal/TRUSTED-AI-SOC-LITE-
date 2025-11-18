@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 TARGETS_FILE="${SCRIPT_DIR}/targets.txt"
 REPORT_DIR="${SCRIPT_DIR}/reports"
 TIMESTAMP="$(date +%F_%H%M%S)"
@@ -9,6 +10,12 @@ XML_REPORT="${REPORT_DIR}/full_soc_scan_${TIMESTAMP}.xml"
 AUTO_TARGET_DISCOVERY="${AUTO_TARGET_DISCOVERY:-1}"
 SCAN_PROFILE="${SCAN_PROFILE:-full}"
 EXTRA_NMAP_ARGS="${EXTRA_NMAP_ARGS:-}"
+AI_AUTORUN="${AI_AUTORUN:-1}"
+AI_ENGINE_DIR="${AI_ENGINE_DIR:-${PROJECT_ROOT}/ai_engine}"
+AI_MODEL_PATH="${AI_MODEL_PATH:-${AI_ENGINE_DIR}/models/model.pkl}"
+AI_LOG_FILE="${AI_LOG_FILE:-${AI_ENGINE_DIR}/logs/ia_events.log}"
+AI_WAZUH_LOG="${AI_WAZUH_LOG:-/var/log/trusted_ai_soc_lite.log}"
+AI_AUDIT_FILE="${AI_AUDIT_FILE:-${PROJECT_ROOT}/audit/ia_decisions.json}"
 
 if ! command -v nmap >/dev/null 2>&1; then
   echo "[ERREUR] nmap n'est pas installé.\nInstallez-le via: sudo apt install nmap" >&2
@@ -120,5 +127,39 @@ nmap "${NMAP_ARGS[@]}" -oX "${XML_REPORT}" -iL "${TARGETS_FILE}"
 
 echo "[INFO] Conversion XML -> JSON"
 python3 "${SCRIPT_DIR}/parse_nmap.py" "${XML_REPORT}"
+
+JSON_REPORT="${XML_REPORT%.xml}.json"
+if [ "${AI_AUTORUN}" = "1" ]; then
+  if [ -f "${JSON_REPORT}" ]; then
+    if [ -d "${AI_ENGINE_DIR}" ] && [ -f "${AI_ENGINE_DIR}/analyse_scan.py" ]; then
+      echo "[INFO] Analyse IA automatique du rapport ${JSON_REPORT}"
+      mkdir -p "$(dirname "${AI_LOG_FILE}")"
+      mkdir -p "$(dirname "${AI_AUDIT_FILE}")"
+      AI_VENV_ACTIVATE="${AI_ENGINE_DIR}/venv/bin/activate"
+      if [ -f "${AI_VENV_ACTIVATE}" ]; then
+        # shellcheck disable=SC1091
+        source "${AI_VENV_ACTIVATE}"
+      else
+        echo "[INFO] Aucun venv détecté dans ${AI_ENGINE_DIR} → utilisation de python3 système"
+      fi
+      if python3 "${AI_ENGINE_DIR}/analyse_scan.py" \
+        "${JSON_REPORT}" \
+        --model "${AI_MODEL_PATH}" \
+        --log-file "${AI_LOG_FILE}" \
+        --wazuh-log "${AI_WAZUH_LOG}" \
+        --audit-file "${AI_AUDIT_FILE}"; then
+        echo "[OK] Analyse IA terminée et envoyée à Wazuh"
+      else
+        echo "[ERREUR] L'analyse IA automatique a échoué" >&2
+      fi
+    else
+      echo "[AVERTISSEMENT] ${AI_ENGINE_DIR}/analyse_scan.py introuvable → saute l'analyse IA" >&2
+    fi
+  else
+    echo "[AVERTISSEMENT] Rapport JSON ${JSON_REPORT} introuvable → impossible de lancer l'IA" >&2
+  fi
+else
+  echo "[INFO] AI_AUTORUN=0 → analyse IA automatique désactivée"
+fi
 
 echo "[OK] Rapports enregistrés dans ${REPORT_DIR}"

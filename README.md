@@ -106,7 +106,7 @@ Le dépôt contient une version prête à l'emploi du dossier `/opt/trusted_ai_s
 | Fichier / dossier | Rôle |
 | --- | --- |
 | `targets.txt` | Liste des IP/CIDR à scanner (une entrée par ligne). |
-| `run_scan.sh` | Script principal : lance `nmap`, stocke le rapport XML puis appelle le parser Python. |
+| `run_scan.sh` | Script principal : lance `nmap`, stocke le rapport XML, appelle le parser puis déclenche automatiquement `ai_engine/analyse_scan.py`. |
 | `parse_nmap.py` | Convertit le rapport XML en JSON structuré (metadata + hosts/services). |
 | `reports/` | Destination des rapports `scan_YYYY-MM-DD_HHMMSS.{xml,json}`. |
 
@@ -122,7 +122,7 @@ Le dépôt contient une version prête à l'emploi du dossier `/opt/trusted_ai_s
    ```
 
    - Le script exige `nmap` et `python3`.
-   - Les rapports sont placés dans `reports/` et prêts à être ingérés par `ai_engine/analyse_scan.py`.
+   - Les rapports sont placés dans `reports/`, puis `ai_engine/analyse_scan.py` est appelé automatiquement (désactivez avec `AI_AUTORUN=0`).
 
 4. Pour une exécution régulière, ajouter une entrée cron ou un service `systemd` qui exécute `run_scan.sh`.
 
@@ -182,7 +182,9 @@ Il suffit ensuite de déclarer `/var/log/trusted_ai_soc_lite.log` dans Wazuh (`<
 ### 4.2 Analyse IA + XAI
 
 - `analyse_scan.py` lit les rapports JSON, fait du feature engineering (ports/services/OS, score CVSS),
-  applique un modèle (clustering, détection anomalie) puis ajoute une explication SHAP/LIME.
+  applique un modèle (clustering, détection anomalie) puis ajoute une explication SHAP/LIME. Il est appelé
+  automatiquement par `nmap_scanner/run_scan.sh` (variable `AI_AUTORUN=0` pour le désactiver ou `AI_ENGINE_DIR`,
+  `AI_MODEL_PATH`, `AI_LOG_FILE`, `AI_WAZUH_LOG`, `AI_AUDIT_FILE` pour personnaliser les chemins).
 - Chaque host/scan produit une ligne JSON formatée Wazuh dans `/var/log/trusted_ai_soc_lite.log`.
 
 Exemple :

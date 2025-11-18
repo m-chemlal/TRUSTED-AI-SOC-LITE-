@@ -136,6 +136,29 @@ comportement.
 Résultat : vous pouvez choisir la vitesse désirée tout en conservant, par
 défaut, le scan FULL SOC demandé.
 
+### Analyse IA automatique après chaque scan
+
+- Une fois le JSON généré, `run_scan.sh` déclenche automatiquement
+  `../ai_engine/analyse_scan.py` afin de produire le score, l'explication XAI,
+  `logs/ia_events.log`, `/var/log/trusted_ai_soc_lite.log` et
+  `../audit/ia_decisions.json`.
+- Exportez `AI_AUTORUN=0` si vous voulez désactiver cette étape (tests unitaires,
+  exécution hors IA, etc.).
+- Chemins personnalisables :
+
+  | Variable | Effet |
+  | --- | --- |
+  | `AI_ENGINE_DIR` | Répertoire contenant `analyse_scan.py` et le `venv`. |
+  | `AI_MODEL_PATH` | Modèle IA à charger (par défaut `ai_engine/models/model.pkl`). |
+  | `AI_LOG_FILE` | Journal local IA (par défaut `ai_engine/logs/ia_events.log`). |
+  | `AI_WAZUH_LOG` | Fichier surveillé par Wazuh (par défaut `/var/log/trusted_ai_soc_lite.log`). |
+  | `AI_AUDIT_FILE` | Historique structuré (par défaut `../audit/ia_decisions.json`). |
+
+- Si un `venv` est présent dans `ai_engine/venv`, il est automatiquement
+  activé avant l'exécution. Sinon, le Python système est utilisé.
+- En cas d'erreur IA, le scanner affiche un message explicite mais conserve les
+  rapports XML/JSON pour permettre le diagnostic.
+
 ### Structure des rapports JSON produits
 
 `parse_nmap.py` enrichit maintenant la sortie avec les résultats NSE, ce qui

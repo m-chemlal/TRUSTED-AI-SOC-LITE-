@@ -44,8 +44,12 @@ ai_engine/
    - génération d'une explication courte (`top_findings`).
 5. L'événement IA est journalisé :
    - `logs/ia_events.log` (copie locale),
-   - `/var/log/trusted_ai_soc_lite.log` (fichier surveillé par le Wazuh Agent),
-   - `../audit/ia_decisions.json` (historique structuré pour reporting).
+ - `/var/log/trusted_ai_soc_lite.log` (fichier surveillé par le Wazuh Agent),
+  - `../audit/ia_decisions.json` (historique structuré pour reporting).
+
+> ℹ️ `nmap_scanner/run_scan.sh` appelle désormais automatiquement `analyse_scan.py`. Exportez `AI_AUTORUN=0` si vous
+> souhaitez lancer l'analyse manuellement ou personnalisez les chemins via `AI_ENGINE_DIR`, `AI_MODEL_PATH`,
+> `AI_LOG_FILE`, `AI_WAZUH_LOG` et `AI_AUDIT_FILE`.
 
 Exemple de payload :
 ```json
