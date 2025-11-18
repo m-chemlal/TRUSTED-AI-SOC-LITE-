@@ -126,6 +126,49 @@ Le dépôt contient une version prête à l'emploi du dossier `/opt/trusted_ai_s
 
 4. Pour une exécution régulière, ajouter une entrée cron ou un service `systemd` qui exécute `run_scan.sh`.
 
+### 3.2 Implémentation du dossier `ai_engine`
+
+Le dossier `opt/trusted_ai_soc_lite/ai_engine` regroupe l'ensemble du moteur IA/XAI.
+
+| Fichier / dossier | Rôle |
+| --- | --- |
+| `analyse_scan.py` | Lit les rapports JSON, extrait les features, applique le modèle ML (ou l'heuristique) puis écrit les décisions dans les logs surveillés par Wazuh. |
+| `feature_engineering.py` | Fonctions communes pour détecter services sensibles, CVE issues des scripts NSE, authentifications anonymes, etc. |
+| `train_model.py` | Script pour entraîner un modèle RandomForest à partir des rapports Nmap + labels (`labels.json`). |
+| `requirements.txt` | Dépendances à installer dans un `venv` (scikit-learn, pandas, SHAP, LIME, etc.). |
+| `models/` | Contient `model.pkl` exporté via `train_model.py`. Un `.gitkeep` évite de versionner le binaire. |
+| `logs/` | Stocke `ia_events.log` et `last_features.json`. |
+| `../audit/ia_decisions.json` | Historique cumulatif utilisé pour les rapports/audits. |
+
+Usage de base :
+
+```bash
+cd /opt/trusted_ai_soc_lite/ai_engine
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python3 analyse_scan.py ../nmap_scanner/reports/scan_latest.json \
+  --model models/model.pkl \
+  --log-file logs/ia_events.log \
+  --wazuh-log /var/log/trusted_ai_soc_lite.log \
+  --audit-file ../audit/ia_decisions.json
+```
+
+Chaque événement IA ressemble à :
+
+```json
+{
+  "timestamp": "2025-11-17T11:30:00Z",
+  "scan_id": "scan_2025-11-17_1130",
+  "host": "192.168.1.10",
+  "risk_score": 87,
+  "risk_level": "critical",
+  "top_findings": ["3 CVE détectées", "FTP anonyme autorisé"]
+}
+```
+
+Il suffit ensuite de déclarer `/var/log/trusted_ai_soc_lite.log` dans Wazuh (`<localfile>`), de créer un decoder JSON et d'écrire les règles/Active Responses alignées sur `risk_score` ou `risk_level`.
+
 ## 4. Flux détaillé
 
 ### 4.1 Scan réseau (Nmap)
