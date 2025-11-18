@@ -129,10 +129,16 @@ echo "[INFO] Conversion XML -> JSON"
 python3 "${SCRIPT_DIR}/parse_nmap.py" "${XML_REPORT}"
 
 JSON_REPORT="${XML_REPORT%.xml}.json"
-if [ "${AI_AUTORUN}" = "1" ]; then
-  if [ -f "${JSON_REPORT}" ]; then
-    if [ -d "${AI_ENGINE_DIR}" ] && [ -f "${AI_ENGINE_DIR}/analyse_scan.py" ]; then
-      echo "[INFO] Analyse IA automatique du rapport ${JSON_REPORT}"
+if [ ! -f "${JSON_REPORT}" ]; then
+  echo "[ERREUR] ${JSON_REPORT} introuvable → impossible de lancer l'analyse IA" >&2
+else
+  if [ "${AI_AUTORUN}" = "1" ]; then
+    DEFAULT_AI_ENGINE_DIR="/opt/trusted_ai_soc_lite/ai_engine"
+    AI_ENGINE_DIR="${AI_ENGINE_DIR:-${DEFAULT_AI_ENGINE_DIR}}"
+    echo "[INFO] Analyse IA automatique du rapport ${XML_REPORT}"
+    if [ ! -f "${AI_ENGINE_DIR}/analyse_scan.py" ]; then
+      echo "[AVERTISSEMENT] ${AI_ENGINE_DIR}/analyse_scan.py introuvable → saute l'analyse IA" >&2
+    else
       mkdir -p "$(dirname "${AI_LOG_FILE}")"
       mkdir -p "$(dirname "${AI_AUDIT_FILE}")"
       AI_VENV_ACTIVATE="${AI_ENGINE_DIR}/venv/bin/activate"
@@ -152,14 +158,10 @@ if [ "${AI_AUTORUN}" = "1" ]; then
       else
         echo "[ERREUR] L'analyse IA automatique a échoué" >&2
       fi
-    else
-      echo "[AVERTISSEMENT] ${AI_ENGINE_DIR}/analyse_scan.py introuvable → saute l'analyse IA" >&2
     fi
   else
-    echo "[AVERTISSEMENT] Rapport JSON ${JSON_REPORT} introuvable → impossible de lancer l'IA" >&2
+    echo "[INFO] AI_AUTORUN=0 → analyse IA automatique désactivée"
   fi
-else
-  echo "[INFO] AI_AUTORUN=0 → analyse IA automatique désactivée"
 fi
 
 echo "[OK] Rapports enregistrés dans ${REPORT_DIR}"
