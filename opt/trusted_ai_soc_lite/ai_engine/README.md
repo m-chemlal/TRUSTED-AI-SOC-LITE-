@@ -12,13 +12,16 @@ des décisions vers Wazuh / audit.
 ai_engine/
 ├── analyse_scan.py        # Pipeline d'inférence (lecture JSON → score → log)
 ├── feature_engineering.py # Fonctions de parsing + features partagées
+├── shap_explainer.py      # SHAP (TreeExplainer) avec fallback
+├── lime_explainer.py      # LIME tabulaire (peut être désactivé)
+├── ti_enricher.py         # Threat Intelligence (OTX/MISP offline-friendly)
 ├── train_model.py         # Entraînement RandomForest sur des rapports étiquetés
-├── requirements.txt       # Dépendances IA/XAI (venv recommandé)
+├── requirements.txt       # Dépendances IA/XAI/TI (venv recommandé)
 ├── models/
 │   └── .gitkeep           # `model.pkl` est généré après entraînement
 ├── logs/
-│   └── .gitkeep           # `ia_events.log` & `last_features.json`
-└── ../audit/              # `ia_decisions.json` (historique des verdicts)
+│   └── .gitkeep           # `ia_events.log`, `last_features.json`, `ti_cache.json`
+└── ../audit/              # `ia_decisions.json` + `scan_history.json`
 ```
 
 > 💡 Installez un environnement virtuel :
@@ -57,13 +60,25 @@ Exemple de payload :
   "timestamp": "2025-11-17T11:30:00Z",
   "scan_id": "scan_2025-11-17_1130",
   "host": "192.168.1.10",
-  "risk_score": 87,
+  "risk_score": 93,
   "risk_level": "critical",
   "top_findings": [
     "3 CVE détectées",
     "2 services sensibles (FTP/SMB/etc.)",
     "FTP anonyme autorisé"
-  ]
+  ],
+  "cves": ["CVE-2024-36391", "CVE-2023-48795"],
+  "cvss": {"max": 9.8, "avg": 8.4},
+  "shap_top_features": [
+    {"feature": "cve_count", "impact": 0.42},
+    {"feature": "max_cvss", "impact": 0.31}
+  ],
+  "threat_intel": {
+    "cve_matches": [
+      {"cve": "CVE-2024-36391", "cvss": 9.8, "source": "cnvd", "threat_name": "Apache HTTPD path traversal"}
+    ],
+    "score_adjustment": 9
+  }
 }
 ```
 
@@ -91,6 +106,10 @@ Arguments utiles :
 | `--log-file` | Journal local des événements IA. |
 | `--wazuh-log` | Fichier suivi par le Wazuh Agent. Désactiver avec `--wazuh-log ""`. |
 | `--audit-file` | Historique JSON pour reporting / Streamlit / pandas. |
+| `--scan-history` | Fichier cumulatif par scan (`audit/scan_history.json`). |
+| `--ti-cache` | Cache pour l'enrichissement Threat Intelligence. |
+| `--disable-shap` / `--disable-lime` | Désactivent les explications XAI si vous voulez accélérer les tests. |
+| `--ti-offline` | Forcer le mode TI hors-ligne (ignore les appels réseau vers OTX). |
 
 Sorties :
 - `logs/ia_events.log` : log JSON line par host.
@@ -123,6 +142,19 @@ Le fichier `labels.json` doit ressembler à :
 ```
 
 Les labels acceptés sont `low`, `medium`, `high`, `critical`.
+
+### 3.4 XAI & Threat Intelligence
+
+- `shap_explainer.py` et `lime_explainer.py` s'activent automatiquement lorsque
+  les bibliothèques sont installées. Vous pouvez les désactiver via
+  `--disable-shap` ou `--disable-lime` (ou en exportant `AI_DISABLE_SHAP=1`).
+- `ti_enricher.py` consomme un cache JSON (`logs/ti_cache.json`). Il réconcilie
+  les CVE détectées avec une base locale (CUPS, Apache, SSH, etc.) et, si un
+  token `OTX_API_KEY` est défini, interroge automatiquement l'API AlienVault.
+  Chaque match ajoute des métadonnées (`threat_name`, `cvss`, `source`) et un
+  `score_adjustment` plafonné à +15 points.
+- `scan_history.json` est rafraîchi à chaque exécution pour alimenter le
+  dashboard Streamlit (timeline et KPIs) et servir de support d'audit.
 
 ---
 

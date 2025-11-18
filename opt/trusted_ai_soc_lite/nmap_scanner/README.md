@@ -136,6 +136,17 @@ comportement.
 Résultat : vous pouvez choisir la vitesse désirée tout en conservant, par
 défaut, le scan FULL SOC demandé.
 
+#### Utiliser `profiles.d/` pour partager vos presets
+
+Les overrides précédents sont disponibles dans `profiles.d/*.env`. Exportez
+simplement `SCAN_PROFILE=fast` (ou `balanced`, `full`, `aggressive`) pour
+qu'ils soient chargés automatiquement. Chaque fichier contient les variables
+pertinentes (`*_PORT_RANGE`, `*_SCRIPT_TIMEOUT`, `EXTRA_NMAP_ARGS`, etc.).
+
+Ajoutez vos propres presets (ex. `dmz.env`, `webapps.env`) pour documenter vos
+scénarios SOC : `run_scan.sh` chargera n'importe quel `.env` portant le même nom
+que la valeur de `SCAN_PROFILE`.
+
 ### Analyse IA automatique après chaque scan
 
 - Une fois le JSON généré, `run_scan.sh` déclenche automatiquement
@@ -158,6 +169,32 @@ défaut, le scan FULL SOC demandé.
   activé avant l'exécution. Sinon, le Python système est utilisé.
 - En cas d'erreur IA, le scanner affiche un message explicite mais conserve les
   rapports XML/JSON pour permettre le diagnostic.
+- Nouveaux toggles disponibles :
+  - `AI_DISABLE_SHAP=1` ou `AI_DISABLE_LIME=1` pour accélérer les tests ;
+  - `AI_TI_OFFLINE=1` pour forcer le mode Threat Intelligence hors-ligne ;
+  - `AI_SCAN_HISTORY=/chemin` pour personnaliser le fichier exploité par le dashboard.
+
+### Brancher OpenVAS / Greenbone
+
+Le dossier `openvas_integration/` contient un script `launch_openvas_scan.py`
+qui crée une tâche GVM, déclenche le scan « Full and Fast » et exporte le
+rapport XML directement dans `reports/`. Il réutilise `targets.txt`, ce qui
+permet d'exécuter Nmap **et** OpenVAS sur le même périmètre avant d'alimenter
+`ai_engine/`.
+
+1. Installez `python-gvm` (`pip install python-gvm`).
+2. Exportez les identifiants GVM (`--user`, `--password`).
+3. Lancez :
+   ```bash
+   cd /opt/trusted_ai_soc_lite/nmap_scanner/openvas_integration
+   python3 launch_openvas_scan.py --user admin --password '***'
+   ```
+4. Convertissez ensuite le rapport en JSON pour enrichir l'IA (les champs CVE / CVSS
+   sont déjà pris en charge par `feature_engineering.py`).
+
+> 💡 Vous pouvez enchaîner `run_scan.sh` puis `launch_openvas_scan.py` dans un même
+> service `systemd` pour disposer d'une vision complète (Nmap + OpenVAS) avant la
+> phase IA/XAI.
 
 ### Réponse automatique (response_engine)
 

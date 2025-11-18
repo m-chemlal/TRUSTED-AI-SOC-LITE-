@@ -52,6 +52,8 @@ def build_dataset(reports: list[Path], labels_file: Path) -> tuple[list[list[int
                     feat.cve_count,
                     int(feat.has_anonymous_ftp),
                     int(feat.has_default_http_admin),
+                    feat.max_cvss,
+                    feat.avg_cvss,
                 ]
             )
             y.append(LABEL_TO_INT[label])

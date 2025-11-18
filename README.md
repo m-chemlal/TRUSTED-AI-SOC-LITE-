@@ -38,7 +38,7 @@ réponse.
         (2) Moteur IA + XAI (Python)
                   │  (scores + explications)
                   ▼
-        (3) Journal IA → Fichier log custom
+        (3) TI + Journal IA → Fichier log custom
                   │
         [Wazuh Agent - envoie les logs au Manager]
                   │
@@ -48,9 +48,8 @@ réponse.
                   ▼
         (4) Règles / Alertes SOC
                   │
-                  ├──► (5) Dashboard SOC (Wazuh UI)
-                  └──► (6) Moteur de réponse automatique
-                           (UFW / iptables / mail / ticket)
+                  ├──► (5) Dashboard SOC (Wazuh UI + Streamlit IA)
+                  └──► (6) Moteur de réponse automatique / orchestration (UFW / API / mail)
 ```
 
 ## 2. Architecture physique sur Debian
@@ -73,36 +72,41 @@ Une seule machine Debian (ex. Debian 12) assure trois rôles :
 | Réponse  | Scripts Python/Bash                | UFW/iptables, mails, création de tickets           |
 | Audit    | JSON / SQLite                      | Historique des décisions IA & réponses             |
 
+> 🆕 La variante **complexe** ajoute un connecteur OpenVAS/Greenbone, des
+> enrichissements Threat Intelligence (OTX/MISP), un cache XAI (SHAP/LIME) et un
+> dashboard Streamlit dédié en plus des vues Wazuh.
+
 ## 3. Organisation des dossiers
 
 ```
 /opt/trusted_ai_soc_lite/
 ├── nmap_scanner/
-│   ├── targets.txt
-│   ├── run_scan.sh
-│   ├── parse_nmap.py
-│   └── reports/
+│   ├── run_scan.sh / parse_nmap.py / reports/
+│   ├── profiles.d/         # Presets FAST/BALANCED/FULL/AGGRESSIVE
+│   └── openvas_integration/# Lancement GVM / export XML
 ├── ai_engine/
-│   ├── venv/
-│   ├── train_model.py
-│   ├── analyse_scan.py
-│   ├── models/
-│   └── logs/
-├── wazuh/
-│   ├── ossec.local.conf
-│   ├── decoders/
-│   ├── rules/
-│   └── active-response/
+│   ├── analyse_scan.py + feature_engineering.py
+│   ├── shap_explainer.py / lime_explainer.py / ti_enricher.py
+│   ├── train_model.py / models/ / logs/
+│   └── venv/ + requirements.txt
 ├── response_engine/
-│   ├── responder.py
-│   ├── ufw_actions.sh
-│   └── mailer.py
+│   ├── responder.py / mailer.py / ufw_actions.sh
+│   └── (future) api_actions.py, scripts Windows/Linux
+├── dashboard/
+│   ├── app.py (Streamlit)
+│   └── requirements.txt
+├── wazuh/
+│   ├── ossec.local.conf / decoders / rules
+│   └── active-response/trusted_ai_block.sh
 └── audit/
-    ├── ia_decisions.json
-    └── response_actions.json
+    ├── ia_decisions.json / response_actions.json
+    └── scan_history.json
 ```
 
 Les logs consolidés envoyés vers Wazuh sont produits dans `/var/log/trusted_ai_soc_lite.log`.
+Le dossier `dashboard/` propose une vue Streamlit (KPIs + timeline + TI) et les
+fichiers `openvas_integration/` permettent de déclencher un scan Greenbone pour
+compléter la collecte.
 
 ### 3.1 Implémentation du dossier `nmap_scanner`
 
@@ -137,13 +141,16 @@ Le dossier `opt/trusted_ai_soc_lite/ai_engine` regroupe l'ensemble du moteur IA/
 
 | Fichier / dossier | Rôle |
 | --- | --- |
-| `analyse_scan.py` | Lit les rapports JSON, extrait les features, applique le modèle ML (ou l'heuristique) puis écrit les décisions dans les logs surveillés par Wazuh. |
-| `feature_engineering.py` | Fonctions communes pour détecter services sensibles, CVE issues des scripts NSE, authentifications anonymes, etc. |
-| `train_model.py` | Script pour entraîner un modèle RandomForest à partir des rapports Nmap + labels (`labels.json`). |
-| `requirements.txt` | Dépendances à installer dans un `venv` (scikit-learn, pandas, SHAP, LIME, etc.). |
-| `models/` | Contient `model.pkl` exporté via `train_model.py`. Un `.gitkeep` évite de versionner le binaire. |
-| `logs/` | Stocke `ia_events.log` et `last_features.json`. |
+| `analyse_scan.py` | Pipeline JSON → features → scoring → explications XAI → logs/audit. |
+| `feature_engineering.py` | Normalisation des services, détection CVE depuis les scripts NSE, calcul des scores CVSS, indices admin/FTP anonymes. |
+| `train_model.py` | Entraîne un RandomForest (ou XGBoost) à partir de rapports étiquetés (`labels.json`). |
+| `shap_explainer.py` / `lime_explainer.py` | Génèrent les top contributeurs SHAP/LIME pour chaque hôte (si les bibliothèques sont installées). |
+| `ti_enricher.py` | Enrichissement Threat Intelligence (OTX/MISP offline friendly) + score bonus selon la réputation/CVSS. |
+| `requirements.txt` | Liste des dépendances IA/XAI/TI (scikit-learn, pandas, SHAP, LIME, requests, etc.). |
+| `models/` | Stocke `model.pkl` exporté via `train_model.py`. |
+| `logs/` | Contient `ia_events.log`, `last_features.json`, le cache TI (`ti_cache.json`). |
 | `../audit/ia_decisions.json` | Historique cumulatif utilisé pour les rapports/audits. |
+| `../audit/scan_history.json` | Timeline consolidée des scans (exploitée par le dashboard Streamlit). |
 
 Usage de base :
 
@@ -197,6 +204,20 @@ exécutant des actions défensives à partir des décisions IA :
 | `responder.py` | Lit `ai_engine/logs/ia_events.log`, applique la politique (blocage UFW, mail, simple journalisation) et enrichit `audit/response_actions.json`. |
 | `ufw_actions.sh` | Helper Bash qui bloque/débloque une IP et écrit un journal horodaté dans `response_engine/actions.log`. |
 | `mailer.py` | Envoi SMTP minimaliste (`SOC_SMTP_*`, `SOC_ALERT_EMAIL`) pour prévenir l'équipe SOC. |
+
+### 3.5 Dashboard Streamlit
+
+Le dossier `dashboard/` propose une application Streamlit prête à lancer (`streamlit run app.py`).
+Elle lit `audit/ia_decisions.json`, `audit/response_actions.json` et `audit/scan_history.json`
+pour afficher :
+
+- les KPIs (hosts analysés, score moyen, volume d'alertes critiques) ;
+- la timeline des scans (répartition low/medium/high/critical) ;
+- les détails TI (CVE, CVSS, sources) et les top hôtes ;
+- l'historique des réponses automatiques.
+
+Le dashboard consomme les mêmes fichiers que Wazuh, ce qui en fait un support
+idéal pour les démonstrations PFA / soutenances.
 
 `run_scan.sh` peut déclencher automatiquement le responder via `RESPONSE_AUTORUN=1`.
 Les paramètres principaux sont :

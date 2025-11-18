@@ -9,6 +9,8 @@ TIMESTAMP="$(date +%F_%H%M%S)"
 XML_REPORT="${REPORT_DIR}/full_soc_scan_${TIMESTAMP}.xml"
 AUTO_TARGET_DISCOVERY="${AUTO_TARGET_DISCOVERY:-1}"
 SCAN_PROFILE="${SCAN_PROFILE:-full}"
+PROFILES_DIR="${PROFILES_DIR:-${SCRIPT_DIR}/profiles.d}"
+PROFILE_FILE="${PROFILES_DIR}/${SCAN_PROFILE}.env"
 EXTRA_NMAP_ARGS="${EXTRA_NMAP_ARGS:-}"
 AI_AUTORUN="${AI_AUTORUN:-1}"
 AI_ENGINE_DIR="${AI_ENGINE_DIR:-${PROJECT_ROOT}/ai_engine}"
@@ -16,6 +18,12 @@ AI_MODEL_PATH="${AI_MODEL_PATH:-${AI_ENGINE_DIR}/models/model.pkl}"
 AI_LOG_FILE="${AI_LOG_FILE:-${AI_ENGINE_DIR}/logs/ia_events.log}"
 AI_WAZUH_LOG="${AI_WAZUH_LOG:-/var/log/trusted_ai_soc_lite.log}"
 AI_AUDIT_FILE="${AI_AUDIT_FILE:-${PROJECT_ROOT}/audit/ia_decisions.json}"
+AI_SCAN_HISTORY="${AI_SCAN_HISTORY:-${PROJECT_ROOT}/audit/scan_history.json}"
+TI_CACHE_FILE="${TI_CACHE_FILE:-${AI_ENGINE_DIR}/logs/ti_cache.json}"
+AI_DISABLE_SHAP="${AI_DISABLE_SHAP:-0}"
+AI_DISABLE_LIME="${AI_DISABLE_LIME:-0}"
+AI_TI_OFFLINE="${AI_TI_OFFLINE:-0}"
+AI_EXTRA_ARGS="${AI_EXTRA_ARGS:-}"
 RESPONSE_AUTORUN="${RESPONSE_AUTORUN:-0}"
 RESPONSE_ENGINE_DIR="${RESPONSE_ENGINE_DIR:-${PROJECT_ROOT}/response_engine}"
 RESPONDER_SCRIPT="${RESPONDER_SCRIPT:-${RESPONSE_ENGINE_DIR}/responder.py}"
@@ -27,6 +35,19 @@ RESPONDER_DISABLE_EMAIL="${RESPONDER_DISABLE_EMAIL:-0}"
 RESPONDER_DISABLE_UFW="${RESPONDER_DISABLE_UFW:-0}"
 RESPONDER_DRY_RUN="${RESPONDER_DRY_RUN:-0}"
 RESPONSE_ALERT_EMAIL="${RESPONSE_ALERT_EMAIL:-${SOC_ALERT_EMAIL:-}}"
+
+if [ -f "${PROFILE_FILE}" ]; then
+  echo "[INFO] Chargement du preset ${PROFILE_FILE}"
+  # shellcheck disable=SC1090
+  set -a
+  source "${PROFILE_FILE}"
+  set +a
+  SCAN_PROFILE="${SCAN_PROFILE}"
+else
+  if [ -n "${PROFILES_DIR}" ] && [ -d "${PROFILES_DIR}" ]; then
+    echo "[INFO] Aucun preset trouvé pour ${SCAN_PROFILE} (dossier: ${PROFILES_DIR})"
+  fi
+fi
 
 if ! command -v nmap >/dev/null 2>&1; then
   echo "[ERREUR] nmap n'est pas installé.\nInstallez-le via: sudo apt install nmap" >&2
@@ -100,6 +121,26 @@ case "${SCAN_PROFILE}" in
       NMAP_ARGS+=(--script-args=unsafe=1)
     fi
     ;;
+  aggressive)
+    PROFILE_NAME="AGGRESSIVE_LAB"
+    PROFILE_DESC="tous les ports + scripts exploit/brute (réservé aux labos)"
+    AGG_SCRIPT_SET="${AGGRESSIVE_SCRIPT_SETS:-default,vuln,auth,malware,exploit,brute}"
+    NMAP_ARGS=(
+      -sV
+      -sC
+      -O
+      --osscan-guess
+      -T4
+      -p "${AGGRESSIVE_PORT_RANGE:-1-65535}"
+      --script "${AGG_SCRIPT_SET}"
+      --script-timeout "${AGGRESSIVE_SCRIPT_TIMEOUT:-45s}"
+      --max-retries "${AGGRESSIVE_MAX_RETRIES:-1}"
+      --host-timeout "${AGGRESSIVE_HOST_TIMEOUT:-10m}"
+    )
+    if [ "${AGGRESSIVE_INCLUDE_UNSAFE:-1}" = "1" ]; then
+      NMAP_ARGS+=(--script-args=unsafe=1)
+    fi
+    ;;
   *)
     echo "[AVERTISSEMENT] SCAN_PROFILE=${SCAN_PROFILE} non reconnu → utilisation du profil FULL_SOC" >&2
     PROFILE_NAME="FULL_SOC"
@@ -159,12 +200,31 @@ else
       else
         echo "[INFO] Aucun venv détecté dans ${AI_ENGINE_DIR} → utilisation de python3 système"
       fi
-      if python3 "${AI_ENGINE_DIR}/analyse_scan.py" \
-        "${JSON_REPORT}" \
-        --model "${AI_MODEL_PATH}" \
-        --log-file "${AI_LOG_FILE}" \
-        --wazuh-log "${AI_WAZUH_LOG}" \
-        --audit-file "${AI_AUDIT_FILE}"; then
+      ANALYSE_CMD=(
+        python3 "${AI_ENGINE_DIR}/analyse_scan.py"
+        "${JSON_REPORT}"
+        --model "${AI_MODEL_PATH}"
+        --log-file "${AI_LOG_FILE}"
+        --wazuh-log "${AI_WAZUH_LOG}"
+        --audit-file "${AI_AUDIT_FILE}"
+        --scan-history "${AI_SCAN_HISTORY}"
+        --ti-cache "${TI_CACHE_FILE}"
+      )
+      if [ "${AI_DISABLE_SHAP}" = "1" ]; then
+        ANALYSE_CMD+=(--disable-shap)
+      fi
+      if [ "${AI_DISABLE_LIME}" = "1" ]; then
+        ANALYSE_CMD+=(--disable-lime)
+      fi
+      if [ "${AI_TI_OFFLINE}" = "1" ]; then
+        ANALYSE_CMD+=(--ti-offline)
+      fi
+      if [ -n "${AI_EXTRA_ARGS}" ]; then
+        # shellcheck disable=SC2206
+        EXTRA_AI_ARGS=(${AI_EXTRA_ARGS})
+        ANALYSE_CMD+=("${EXTRA_AI_ARGS[@]}")
+      fi
+      if "${ANALYSE_CMD[@]}"; then
         echo "[OK] Analyse IA terminée et envoyée à Wazuh"
       else
         echo "[ERREUR] L'analyse IA automatique a échoué" >&2

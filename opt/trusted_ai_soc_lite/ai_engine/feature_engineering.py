@@ -7,7 +7,8 @@ import json
 import re
 from typing import Any, Iterable
 
-CVE_PATTERN = re.compile(r"CVE-\d{4}-\d+")
+CVE_PATTERN = re.compile(r"CVE-\d{4}-\d+", re.IGNORECASE)
+CVSS_PATTERN = re.compile(r"CVSS(?:v[23])?[^0-9]*([0-9]+(?:\.[0-9]+)?)", re.IGNORECASE)
 RISKY_SERVICES = {
     "ftp",
     "telnet",
@@ -31,9 +32,12 @@ class HostFeatures:
     open_ports: int
     risky_services: int
     cve_count: int
+    cve_list: list[str]
     has_anonymous_ftp: bool
     has_default_http_admin: bool
     script_findings: list[str]
+    max_cvss: float
+    avg_cvss: float
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -43,6 +47,9 @@ class HostFeatures:
             "open_ports": self.open_ports,
             "risky_services": self.risky_services,
             "cve_count": self.cve_count,
+            "cve_list": self.cve_list,
+            "max_cvss": self.max_cvss,
+            "avg_cvss": self.avg_cvss,
             "has_anonymous_ftp": int(self.has_anonymous_ftp),
             "has_default_http_admin": int(self.has_default_http_admin),
         }
@@ -72,12 +79,20 @@ def _iter_table_strings(table: Any) -> Iterable[str]:
                 yield from _iter_table_strings(value)
 
 
-def _count_cves(scripts: Iterable[dict[str, Any]]) -> int:
-    cves: set[str] = set()
+def _extract_cves_and_scores(scripts: Iterable[dict[str, Any]]) -> tuple[list[str], list[float]]:
+    cves: dict[str, None] = {}
+    scores: list[float] = []
     for text in _iter_script_outputs(scripts):
-        for match in CVE_PATTERN.findall(text.upper()):
-            cves.add(match)
-    return len(cves)
+        if not isinstance(text, str):
+            continue
+        for match in CVE_PATTERN.findall(text):
+            cves[match.upper()] = None
+        for match in CVSS_PATTERN.findall(text):
+            try:
+                scores.append(float(match))
+            except ValueError:
+                continue
+    return list(cves.keys()), scores
 
 
 def _has_anonymous_ftp(scripts: Iterable[dict[str, Any]]) -> bool:
@@ -107,16 +122,23 @@ def extract_features_from_host(host: dict[str, Any]) -> HostFeatures:
     for svc in open_services:
         combined_scripts.extend(svc.get("scripts", []))
 
+    cve_list, cvss_scores = _extract_cves_and_scores(combined_scripts)
+    max_cvss = max(cvss_scores) if cvss_scores else 0.0
+    avg_cvss = (sum(cvss_scores) / len(cvss_scores)) if cvss_scores else 0.0
+
     return HostFeatures(
         host=host.get("address"),
         hostname=host.get("hostname"),
         os=host.get("os"),
         open_ports=len(open_services),
         risky_services=len(risky_services),
-        cve_count=_count_cves(combined_scripts),
+        cve_count=len(cve_list),
+        cve_list=cve_list,
         has_anonymous_ftp=_has_anonymous_ftp(per_service_scripts),
         has_default_http_admin=_has_http_admin_exposure(per_service_scripts),
         script_findings=list({text for text in _iter_script_outputs(combined_scripts)}),
+        max_cvss=max_cvss,
+        avg_cvss=avg_cvss,
     )
 
 
@@ -125,8 +147,14 @@ def open_services_scripts(services: Iterable[dict[str, Any]]) -> Iterable[dict[s
         yield from svc.get("scripts", [])
 
 
-def extract_features_from_scan(scan_path: Path) -> list[HostFeatures]:
-    data = json.loads(scan_path.read_text(encoding="utf-8"))
+def _load_scan_payload(scan_source: Path | dict[str, Any]) -> dict[str, Any]:
+    if isinstance(scan_source, Path):
+        return json.loads(scan_source.read_text(encoding="utf-8"))
+    return scan_source
+
+
+def extract_features_from_scan(scan_source: Path | dict[str, Any]) -> list[HostFeatures]:
+    data = _load_scan_payload(scan_source)
     hosts = data.get("hosts", [])
     return [extract_features_from_host(host) for host in hosts]
 
