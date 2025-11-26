@@ -26,6 +26,69 @@ réponse.
 4. **Configurer chaque brique** (scanner, IA, Wazuh, réponse). Le dossier `opt/trusted_ai_soc_lite/nmap_scanner`
    possède désormais son propre `README.md` avec toutes les commandes pour lancer, tester et automatiser les scans Nmap.
 
+### 🚀 Parcours express : du clone au dashboard (Debian)
+
+Si vous voulez tout lancer (scan ➜ IA/TI ➜ réponse ➜ dashboard) immédiatement après le clone :
+
+1. **Installer les prérequis système** (root ou sudo) :
+   ```bash
+   sudo apt update
+   sudo apt install git nmap python3 python3-venv
+   ```
+
+2. **Déployer le projet dans `/opt/trusted_ai_soc_lite/`** :
+   ```bash
+   cd /opt
+   sudo git clone https://github.com/<votre-espace>/TRUSTED-AI-SOC-LITE-.git trusted_ai_soc_lite_repo
+   cd trusted_ai_soc_lite_repo
+   sudo mkdir -p /opt/trusted_ai_soc_lite
+   sudo rsync -av opt/trusted_ai_soc_lite/ /opt/trusted_ai_soc_lite/
+   cd /opt/trusted_ai_soc_lite
+   ```
+
+3. **Préparer les environnements Python (IA + dashboard)** :
+   ```bash
+   cd /opt/trusted_ai_soc_lite/ai_engine
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   deactivate
+
+   cd /opt/trusted_ai_soc_lite/dashboard
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   deactivate
+   ```
+
+4. **Renseigner vos cibles** si besoin (sinon l’auto-discovery remplira `targets.txt`) :
+   ```bash
+   nano /opt/trusted_ai_soc_lite/nmap_scanner/targets.txt
+   ```
+
+5. **Lancer tout le SOC + le dashboard en une commande** :
+   ```bash
+   cd /opt/trusted_ai_soc_lite
+   ./run_all.sh --profile full --dashboard --keep-dashboard
+   ```
+   * `run_all.sh` rafraîchit les cibles, exécute Nmap (profil FULL par défaut), appelle l’IA/TI, déclenche la réponse,
+     alimente Wazuh et démarre le dashboard Streamlit.
+   * Pour un test rapide : `./run_all.sh --profile fast --dashboard --dry-run` (affiche le pipeline sans scanner).
+
+6. **Consulter les résultats** :
+   * Rapports Nmap : `/opt/trusted_ai_soc_lite/nmap_scanner/reports/scan_*.{xml,json}`
+   * Logs IA : `/opt/trusted_ai_soc_lite/ai_engine/logs/ia_events.log`
+   * Audit cumulatif : `/opt/trusted_ai_soc_lite/audit/ia_decisions.json`
+   * Dashboard Streamlit (si `--dashboard`) : http://localhost:8501
+
+7. **(Optionnel) Activer la boucle automatique** (ex. toutes les 30 min) :
+   ```bash
+   ./run_all.sh --profile balanced --loop 1800 --dashboard
+   ```
+
+Une fois ces étapes faites, chaque exécution de `run_all.sh` enchaîne scan ➜ IA/XAI ➜ TI ➜ réponse, et
+le dashboard reste consultable pendant que les scans se poursuivent.
+
 ### 🎬 Pilotage automatique (nouveau `run_all.sh`)
 
 Lorsque tout est en place dans `/opt/trusted_ai_soc_lite/`, vous pouvez exécuter **tout le SOC** avec
