@@ -7,6 +7,16 @@ réponse.
 
 ## 0. Mise en route rapide (clonage + dépendances)
 
+### 🆓 Coûts et licences : tout est open source (avec quelques services optionnels)
+
+* **Nmap, Python (venv), Streamlit, scikit-learn, SHAP/LIME, rsync** : tous gratuits et open source sur Debian.
+* **Wazuh** : plateforme SIEM open source (Manager + Agent + Dashboard). Aucun coût de licence dans ce prototype.
+* **OpenVAS/Greenbone** (optionnel) : composant libre utilisé seulement si vous activez `--openvas`.
+* **Threat Intel (OTX, MISP, VirusTotal)** : pris en charge via le module TI ; des clés API gratuites existent (quotas limités). Sans clé, le moteur fonctionne en mode **TI offline** et reste gratuit.
+* **E-mail / webhooks** : l’envoi d’alertes peut utiliser un SMTP personnel ou un webhook (Slack/Discord) — choisissez un service gratuit ou interne.
+
+En résumé : tout le pipeline tourne gratuitement en local. Les seules éventuelles contraintes viennent de services TI ou SMTP externes si vous activez leurs intégrations.
+
 1. **Cloner le dépôt** sur une machine Debian disposant d'un accès root :
    ```bash
    cd /opt
