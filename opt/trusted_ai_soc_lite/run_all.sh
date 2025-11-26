@@ -12,6 +12,8 @@ AI_AUTORUN="${AI_AUTORUN:-1}"
 RESPONSE_AUTORUN="${RESPONSE_AUTORUN:-1}"
 RUN_DASHBOARD=0
 KEEP_DASHBOARD=0
+DASHBOARD_ONLY=0
+SEED_SAMPLE_DATA=0
 DASHBOARD_PORT="${DASHBOARD_PORT:-8501}"
 DASHBOARD_LOG="${PROJECT_ROOT}/dashboard/streamlit.log"
 TI_OFFLINE=0
@@ -43,6 +45,8 @@ Options:
       --openvas                                  Trigger the OpenVAS helper before Nmap
       --openvas-args "..."                       Arguments for the OpenVAS helper
       --dashboard                                Launch the Streamlit dashboard (background)
+      --dashboard-only                           Only start the dashboard (skip scans)
+      --seed-sample-data                         Populate demo data for the dashboard
       --keep-dashboard                           Keep dashboard running after the script exits
       --loop <seconds>                           Rerun the full pipeline every N seconds
       --dry-run                                  Print the resolved commands without executing
@@ -64,6 +68,19 @@ start_dashboard() {
   nohup streamlit run "${DASHBOARD_APP}" --server.port "${DASHBOARD_PORT}" --server.headless true > "${DASHBOARD_LOG}" 2>&1 &
   DASHBOARD_PID=$!
   echo "[OK] Dashboard démarré (PID ${DASHBOARD_PID}). Logs: ${DASHBOARD_LOG}"
+}
+
+seed_sample_data() {
+  local seeder="${PROJECT_ROOT}/dashboard/seed_sample_data.py"
+  if [ ! -x "${seeder}" ]; then
+    echo "[AVERTISSEMENT] Seeder introuvable (${seeder})"
+    return 1
+  fi
+  if [ "${DRY_RUN}" = "1" ]; then
+    echo "[DRY-RUN] ${seeder}"
+    return 0
+  fi
+  "${seeder}" --force
 }
 
 stop_dashboard() {
@@ -89,12 +106,22 @@ run_openvas_helper() {
 }
 
 run_pipeline_once() {
+  if [ "${DASHBOARD_ONLY}" = "1" ]; then
+    echo "[INFO] Mode dashboard uniquement : aucune opération Nmap/IA lancée."
+    return 0
+  fi
+
   if [ "${RUN_OPENVAS}" = "1" ]; then
     run_openvas_helper
   fi
 
   if [ ! -x "${NMAP_RUNNER}" ]; then
     echo "[ERREUR] ${NMAP_RUNNER} est introuvable ou non exécutable" >&2
+    return 1
+  fi
+
+  if ! command -v nmap >/dev/null 2>&1; then
+    echo "[ERREUR] nmap n'est pas installé. Installez-le puis relancez." >&2
     return 1
   fi
 
@@ -146,6 +173,10 @@ while [[ $# -gt 0 ]]; do
       OPENVAS_ARGS="$2"; shift 2;;
     --dashboard)
       RUN_DASHBOARD=1; shift;;
+    --dashboard-only)
+      RUN_DASHBOARD=1; DASHBOARD_ONLY=1; shift;;
+    --seed-sample-data)
+      SEED_SAMPLE_DATA=1; shift;;
     --keep-dashboard)
       KEEP_DASHBOARD=1; shift;;
     --loop)
@@ -162,6 +193,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ "${RUN_DASHBOARD}" = "1" ] && [ "${DRY_RUN}" = "0" ]; then
+  if [ "${SEED_SAMPLE_DATA}" = "1" ]; then
+    seed_sample_data || true
+  fi
   start_dashboard || true
   if [ "${KEEP_DASHBOARD}" = "0" ]; then
     trap stop_dashboard EXIT

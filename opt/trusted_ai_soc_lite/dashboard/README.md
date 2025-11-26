@@ -19,6 +19,19 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+Pour prévisualiser la mise en page sans lancer de scan ni installer Nmap :
+
+```bash
+cd /opt/trusted_ai_soc_lite
+./run_all.sh --dashboard-only --seed-sample-data --keep-dashboard
+```
+ou directement :
+
+```bash
+python3 dashboard/seed_sample_data.py --force
+streamlit run dashboard/app.py
+```
+
 Variables d'environnement utiles :
 
 | Variable | Description |

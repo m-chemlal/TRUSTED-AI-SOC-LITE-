@@ -84,12 +84,17 @@ Si vous voulez tout lancer (scan ➜ IA/TI ➜ réponse ➜ dashboard) immédiat
    * `run_all.sh` rafraîchit les cibles, exécute Nmap (profil FULL par défaut), appelle l’IA/TI, déclenche la réponse,
      alimente Wazuh et démarre le dashboard Streamlit.
    * Pour un test rapide : `./run_all.sh --profile fast --dashboard --dry-run` (affiche le pipeline sans scanner).
+   * Pour **afficher immédiatement le dashboard même sans Nmap installé** :
+     ```bash
+     ./run_all.sh --dashboard-only --seed-sample-data --keep-dashboard
+     ```
+     Cela peuple `audit/*.json` avec des données d’exemple et démarre Streamlit.
 
 6. **Consulter les résultats** :
-   * Rapports Nmap : `/opt/trusted_ai_soc_lite/nmap_scanner/reports/scan_*.{xml,json}`
-   * Logs IA : `/opt/trusted_ai_soc_lite/ai_engine/logs/ia_events.log`
-   * Audit cumulatif : `/opt/trusted_ai_soc_lite/audit/ia_decisions.json`
-   * Dashboard Streamlit (si `--dashboard`) : http://localhost:8501
+     * Rapports Nmap : `/opt/trusted_ai_soc_lite/nmap_scanner/reports/scan_*.{xml,json}`
+     * Logs IA : `/opt/trusted_ai_soc_lite/ai_engine/logs/ia_events.log`
+     * Audit cumulatif : `/opt/trusted_ai_soc_lite/audit/ia_decisions.json`
+     * Dashboard Streamlit (si `--dashboard`) : http://localhost:8501
 
 7. **(Optionnel) Activer la boucle automatique** (ex. toutes les 30 min) :
    ```bash
@@ -129,6 +134,62 @@ Options utiles :
 | `--dry-run` | Affiche les commandes résolues sans rien exécuter (utile pour valider la config). |
 
 Toutes les options sont détaillées via `./run_all.sh --help`.
+
+### 🧭 Mode « Nmap ➜ IA ➜ Dashboard » uniquement (sans Wazuh ni réponse)
+
+Si vous voulez un parcours minimal qui ne dépend ni de Wazuh ni du moteur de réponse :
+
+1. **Installer les prérequis système** (root ou sudo) :
+   ```bash
+   sudo apt update
+   sudo apt install git nmap python3 python3-venv
+   ```
+
+2. **Déployer le projet et les environnements Python** :
+   ```bash
+   cd /opt
+   sudo git clone https://github.com/<votre-espace>/TRUSTED-AI-SOC-LITE-.git trusted_ai_soc_lite_repo
+   cd trusted_ai_soc_lite_repo
+   sudo mkdir -p /opt/trusted_ai_soc_lite
+   sudo rsync -av opt/trusted_ai_soc_lite/ /opt/trusted_ai_soc_lite/
+
+   # IA
+   cd /opt/trusted_ai_soc_lite/ai_engine
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   deactivate
+
+   # Dashboard
+   cd /opt/trusted_ai_soc_lite/dashboard
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   deactivate
+   ```
+
+3. **(Optionnel) Vérifier/éditer les cibles** :
+   ```bash
+   nano /opt/trusted_ai_soc_lite/nmap_scanner/targets.txt
+   ```
+
+4. **Lancer un scan + IA + dashboard (sans réponse ni Wazuh)** :
+   ```bash
+   cd /opt/trusted_ai_soc_lite
+   ./run_all.sh --profile full --dashboard --response-off
+   ```
+   * `--dashboard` démarre Streamlit (http://localhost:8501)
+   * `--response-off` évite d'appeler le moteur de réponse ; aucune dépendance Wazuh n'est requise.
+   * Pour un test ultra-rapide sans installer Nmap :
+     ```bash
+     ./run_all.sh --dashboard-only --seed-sample-data --keep-dashboard
+     ```
+     (préremplit les audits avec des données de démonstration et affiche le dashboard).
+
+5. **Consulter les résultats uniquement en local** :
+   * JSON IA : `/opt/trusted_ai_soc_lite/ai_engine/logs/ia_events.log`
+   * Audit : `/opt/trusted_ai_soc_lite/audit/ia_decisions.json`
+   * Dashboard : http://localhost:8501 (arrêt manuel avec `Ctrl+C` si lancé au premier plan)
 
 ## 1. Architecture logique
 
