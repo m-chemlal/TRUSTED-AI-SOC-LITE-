@@ -91,8 +91,8 @@ def main() -> None:
             return
 
     df = pd.DataFrame(ia_events)
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df = df.sort_values("timestamp", ascending=False)
+    df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce", utc=True)
+    df = df.dropna(subset=["timestamp"]).sort_values("timestamp", ascending=False)
 
     # Pre-compute optional vulnerability context
     cve_records: list[dict[str, Any]] = []
@@ -202,8 +202,8 @@ def main() -> None:
     st.subheader("Cycle moyen de traitement")
     if history:
         hist_df = pd.DataFrame(history)
-        hist_df["timestamp"] = pd.to_datetime(hist_df["timestamp"])
-        hist_df = hist_df.sort_values("timestamp")
+        hist_df["timestamp"] = pd.to_datetime(hist_df["timestamp"], errors="coerce", utc=True)
+        hist_df = hist_df.dropna(subset=["timestamp"]).sort_values("timestamp")
         st.line_chart(hist_df.set_index("timestamp")[["critical", "high", "medium", "low"]])
     else:
         st.info("`audit/scan_history.json` est vide. Les scans rempliront cette timeline.")
@@ -282,7 +282,8 @@ def main() -> None:
     st.subheader("Historique des réponses")
     if responses:
         resp_df = pd.DataFrame(responses)
-        resp_df["timestamp"] = pd.to_datetime(resp_df["timestamp"])
+        resp_df["timestamp"] = pd.to_datetime(resp_df["timestamp"], errors="coerce", utc=True)
+        resp_df = resp_df.dropna(subset=["timestamp"])
         st.dataframe(
             resp_df.sort_values("timestamp", ascending=False),
             hide_index=True,
