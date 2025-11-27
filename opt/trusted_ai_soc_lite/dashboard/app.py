@@ -94,6 +94,51 @@ def main() -> None:
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df = df.sort_values("timestamp", ascending=False)
 
+    # Pre-compute optional vulnerability context
+    cve_records: list[dict[str, Any]] = []
+    for evt in ia_events:
+        cve_list = evt.get("cves") or []
+        matches = evt.get("cve_matches") or []
+        for cve in cve_list:
+            cve_records.append(
+                {
+                    "timestamp": evt.get("timestamp"),
+                    "host": evt.get("host"),
+                    "cve": cve,
+                    "risk_level": evt.get("risk_level"),
+                    "risk_score": evt.get("risk_score"),
+                    "source": None,
+                    "cvss": None,
+                    "threat_name": None,
+                }
+            )
+        for m in matches:
+            cve_records.append(
+                {
+                    "timestamp": evt.get("timestamp"),
+                    "host": evt.get("host"),
+                    "cve": m.get("cve"),
+                    "risk_level": evt.get("risk_level"),
+                    "risk_score": evt.get("risk_score"),
+                    "source": m.get("source"),
+                    "cvss": m.get("cvss"),
+                    "threat_name": m.get("threat_name"),
+                }
+            )
+
+    cve_df = pd.DataFrame(cve_records) if cve_records else pd.DataFrame(
+        columns=[
+            "timestamp",
+            "host",
+            "cve",
+            "risk_level",
+            "risk_score",
+            "source",
+            "cvss",
+            "threat_name",
+        ]
+    )
+
     unique_hosts = df["host"].nunique()
     high_and_critical = (df["risk_level"].isin(["high", "critical"])).sum()
     pending_responses = len(responses)
@@ -180,6 +225,59 @@ def main() -> None:
         use_container_width=True,
         hide_index=True,
     )
+
+    st.markdown("---")
+    st.subheader("Détails vulnérabilités et CVE")
+
+    host_filter = st.selectbox(
+        "Choisir un hôte pour afficher son contexte IA/TI",
+        options=["(tous)"] + sorted(df["host"].unique().tolist()),
+        index=0,
+    )
+
+    filtered_df = df if host_filter == "(tous)" else df[df["host"] == host_filter]
+    filtered_cve_df = cve_df if host_filter == "(tous)" else cve_df[cve_df["host"] == host_filter]
+
+    col1, col2 = st.columns((2, 1))
+
+    with col1:
+        st.caption("Synthèse des vulnérabilités détectées (CVE + enrichissement TI)")
+        if not filtered_cve_df.empty:
+            display_cols = [
+                "timestamp",
+                "host",
+                "cve",
+                "cvss",
+                "risk_score",
+                "risk_level",
+                "source",
+                "threat_name",
+            ]
+            st.dataframe(
+                filtered_cve_df[display_cols]
+                .sort_values("timestamp", ascending=False)
+                .reset_index(drop=True),
+                use_container_width=True,
+                hide_index=True,
+            )
+        else:
+            st.info("Aucune CVE enrichie dans les événements IA (ou filtrage trop restrictif).")
+
+    with col2:
+        st.caption("Principales observations et explications IA")
+        if not filtered_df.empty:
+            latest = filtered_df.iloc[0]
+            st.metric("Hôte", latest["host"])
+            st.metric("Score de risque", f"{latest['risk_score']}")
+            st.write("**Observations majeures :**")
+            findings = latest.get("top_findings") or []
+            for item in findings:
+                st.markdown(f"- {item}")
+            if latest.get("explanation"):
+                st.write("**Explication IA :**")
+                st.info(str(latest["explanation"]))
+        else:
+            st.info("Aucun événement sélectionné pour afficher le détail.")
 
     st.subheader("Historique des réponses")
     if responses:

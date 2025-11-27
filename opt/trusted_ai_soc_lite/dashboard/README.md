@@ -47,6 +47,7 @@ visuel fourni (cartes KPI, barre + donut, tableau synthétique) :
 - Graphiques : barre « progression des statuts » et donut de répartition des risques ;
 - Timeline : évolution des niveaux de risque issus de `scan_history` ;
 - Tableau : hôtes / scores / observations principales ;
+- Vue "Détails vulnérabilités et CVE" : filtre par hôte, tableau des CVE (CVSS, source TI, nom de menace) et fiche explicative IA avec observations majeures / explication ;
 - Historique : actions de réponse enregistrées.
 
 Astuce : si vos fichiers `audit/*.json` sont encore vides, cochez l'option «
