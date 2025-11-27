@@ -71,25 +71,34 @@ export default function App() {
         <div className="badge">Live</div>
       </header>
 
-      <div className="filters">
-        <label htmlFor="scan-select">Scan</label>
-        <select
-          id="scan-select"
-          value={selectedScan}
-          onChange={(e) => setSelectedScan(e.target.value)}
-        >
-          <option value="all">All scans</option>
-          {scanOptions.map((id) => (
-            <option key={id} value={id}>
-              {id}
-            </option>
-          ))}
-        </select>
-        {selectedScan !== 'all' && (
-          <button className="ghost" type="button" onClick={() => setSelectedScan('all')}>
-            Reset
-          </button>
-        )}
+      <div className="filter-card">
+        <div className="filter-meta">
+          <div className="pill">Scan</div>
+          <p className="filter-title">Choose a scan run</p>
+          <small className="muted">View aggregates for a specific execution or everything at once.</small>
+        </div>
+        <div className="filter-controls">
+          <div className="select-shell">
+            <span className="select-label">Scan</span>
+            <select
+              id="scan-select"
+              value={selectedScan}
+              onChange={(e) => setSelectedScan(e.target.value)}
+            >
+              <option value="all">All scans</option>
+              {scanOptions.map((id) => (
+                <option key={id} value={id}>
+                  {id}
+                </option>
+              ))}
+            </select>
+          </div>
+          {selectedScan !== 'all' && (
+            <button className="ghost" type="button" onClick={() => setSelectedScan('all')}>
+              Reset
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
