@@ -70,6 +70,12 @@ def sample_events() -> List[Dict[str, Any]]:
     ]
 
 
+def normalize_timestamps(series: pd.Series) -> pd.Series:
+    """Parse timestamps defensively (ISO 8601, tolerant to mixed formats)."""
+
+    return pd.to_datetime(series.astype(str), format="ISO8601", errors="coerce", utc=True)
+
+
 def main() -> None:
     st.set_page_config(page_title="TRUSTED AI SOC", layout="wide")
     st.title("TRUSTED AI SOC – Synthèse visuelle")
@@ -91,7 +97,7 @@ def main() -> None:
             return
 
     df = pd.DataFrame(ia_events)
-    df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce", utc=True)
+    df["timestamp"] = normalize_timestamps(df["timestamp"])
     df = df.dropna(subset=["timestamp"]).sort_values("timestamp", ascending=False)
 
     # Pre-compute optional vulnerability context
@@ -202,7 +208,7 @@ def main() -> None:
     st.subheader("Cycle moyen de traitement")
     if history:
         hist_df = pd.DataFrame(history)
-        hist_df["timestamp"] = pd.to_datetime(hist_df["timestamp"], errors="coerce", utc=True)
+        hist_df["timestamp"] = normalize_timestamps(hist_df["timestamp"])
         hist_df = hist_df.dropna(subset=["timestamp"]).sort_values("timestamp")
         st.line_chart(hist_df.set_index("timestamp")[["critical", "high", "medium", "low"]])
     else:
@@ -282,7 +288,7 @@ def main() -> None:
     st.subheader("Historique des réponses")
     if responses:
         resp_df = pd.DataFrame(responses)
-        resp_df["timestamp"] = pd.to_datetime(resp_df["timestamp"], errors="coerce", utc=True)
+        resp_df["timestamp"] = normalize_timestamps(resp_df["timestamp"])
         resp_df = resp_df.dropna(subset=["timestamp"])
         st.dataframe(
             resp_df.sort_values("timestamp", ascending=False),
