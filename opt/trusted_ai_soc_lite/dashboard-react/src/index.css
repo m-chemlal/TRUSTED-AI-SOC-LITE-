@@ -74,6 +74,40 @@ body {
 .callout.warning { border-color: #fcd34d; background: #fffbeb; }
 .callout.danger { border-color: #fca5a5; background: #fef2f2; }
 
+.filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 6px;
+  flex-wrap: wrap;
+}
+
+.filters select {
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.filters label {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.ghost {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.ghost:hover {
+  border-color: #cbd5e1;
+}
+
 .grid {
   display: grid;
   gap: 16px;

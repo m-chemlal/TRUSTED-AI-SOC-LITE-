@@ -24,6 +24,38 @@ function latestIso(timestamps = []) {
   return parsed.length ? new Date(parsed.at(-1)).toISOString() : null;
 }
 
+export function computeAggregates(iaDecisions, history) {
+  const byLevel = iaDecisions.reduce(
+    (acc, item) => {
+      const lvl = (item.risk_level || '').toLowerCase();
+      if (lvl in acc) acc[lvl] += 1;
+      return acc;
+    },
+    { low: 0, medium: 0, high: 0, critical: 0 },
+  );
+  const avgScore = iaDecisions.length
+    ? Math.round(
+        iaDecisions.reduce((sum, i) => sum + (Number(i.risk_score) || 0), 0) /
+          iaDecisions.length,
+      )
+    : 0;
+  const lastUpdated = latestIso([
+    ...iaDecisions.map((i) => i.timestamp),
+    ...history.map((h) => h.timestamp),
+  ]);
+  const cveTable = iaDecisions.flatMap((i) =>
+    (i.cves || []).map((cve) => ({
+      host: i.host,
+      risk_level: i.risk_level,
+      risk_score: i.risk_score,
+      cve,
+      timestamp: i.timestamp,
+      scan_id: i.scan_id,
+    })),
+  );
+  return { byLevel, avgScore, lastUpdated, cveTable };
+}
+
 export function useDashboardData() {
   const [iaDecisions, setIaDecisions] = useState([]);
   const [responses, setResponses] = useState([]);
@@ -76,36 +108,24 @@ export function useDashboardData() {
     };
   }, []);
 
-  const aggregates = useMemo(() => {
-    const byLevel = iaDecisions.reduce(
-      (acc, item) => {
-        const lvl = (item.risk_level || '').toLowerCase();
-        if (lvl in acc) acc[lvl] += 1;
-        return acc;
-      },
-      { low: 0, medium: 0, high: 0, critical: 0 },
-    );
-    const avgScore = iaDecisions.length
-      ? Math.round(
-          iaDecisions.reduce((sum, i) => sum + (Number(i.risk_score) || 0), 0) /
-            iaDecisions.length,
-        )
-      : 0;
-    const lastUpdated = latestIso([
-      ...iaDecisions.map((i) => i.timestamp),
-      ...history.map((h) => h.timestamp),
-    ]);
-    const cveTable = iaDecisions.flatMap((i) =>
-      (i.cves || []).map((cve) => ({
-        host: i.host,
-        risk_level: i.risk_level,
-        risk_score: i.risk_score,
-        cve,
-        timestamp: i.timestamp,
-      })),
-    );
-    return { byLevel, avgScore, lastUpdated, cveTable };
-  }, [history, iaDecisions]);
+  const scanOptions = useMemo(() => {
+    const ids = new Set();
+    history.forEach((h) => h.scan_id && ids.add(h.scan_id));
+    iaDecisions.forEach((h) => h.scan_id && ids.add(h.scan_id));
+    responses.forEach((h) => h.scan_id && ids.add(h.scan_id));
+    return Array.from(ids).sort().reverse();
+  }, [history, iaDecisions, responses]);
 
-  return { iaDecisions, responses, history, aggregates, loading, error, usingSamples };
+  const aggregates = useMemo(() => computeAggregates(iaDecisions, history), [history, iaDecisions]);
+
+  return {
+    iaDecisions,
+    responses,
+    history,
+    aggregates,
+    scanOptions,
+    loading,
+    error,
+    usingSamples,
+  };
 }

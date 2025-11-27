@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function HostTable({ iaDecisions }) {
+export function HostTable({ iaDecisions, scanLookup }) {
   return (
     <div className="card">
       <div className="section-title">
@@ -16,6 +16,7 @@ export function HostTable({ iaDecisions }) {
               <thead>
                 <tr>
                   <th>Host</th>
+                  <th>Scan</th>
                   <th>Risk</th>
                   <th>Score</th>
                   <th>Services</th>
@@ -27,6 +28,7 @@ export function HostTable({ iaDecisions }) {
                 {iaDecisions.map((row) => (
                   <tr key={row.host}>
                     <td className="host-name">{row.host}</td>
+                    <td className="muted">{row.scan_id || scanLookup?.get(row.host) || '—'}</td>
                     <td>
                       <span className={`pill ${(row.risk_level || '').toLowerCase()}`} style={{ minWidth: 90 }}>
                         {row.risk_level || 'n/a'}

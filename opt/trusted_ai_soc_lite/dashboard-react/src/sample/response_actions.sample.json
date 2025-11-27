@@ -1,12 +1,14 @@
 [
   {
     "ip": "192.168.1.10",
+    "scan_id": "scan_2025-11-27_1224",
     "action": "block",
     "risk_level": "critical",
     "timestamp": "2025-11-27T12:25:30Z"
   },
   {
     "ip": "192.168.1.15",
+    "scan_id": "scan_2025-11-26_2105",
     "action": "notify",
     "risk_level": "high",
     "timestamp": "2025-11-26T21:06:00Z"

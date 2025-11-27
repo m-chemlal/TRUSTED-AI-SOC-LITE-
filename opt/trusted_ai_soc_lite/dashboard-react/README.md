@@ -19,6 +19,7 @@ Ensuite ouvrez http://localhost:4173 pour voir :
 - Détails CVE/TI par hôte
 - Table des hôtes avec findings et services
 - Historique des actions du moteur de réponse
+- Sélecteur de scan (scan_id) pour filtrer l'ensemble des widgets sur un scan précis
 
 ## Rafraîchir les données après un scan
 1. Exécuter votre scan complet :
@@ -65,6 +66,10 @@ Après chaque nouveau scan, relancez simplement `./sync_data.sh` pour rafraîchi
 
 ## Mode démo sans scan
 Si vos fichiers `audit/*.json` sont vides, `sync_data.sh` injecte un petit dataset d'exemple afin de visualiser le rendu sans lancer Nmap/IA.
+
+## Astuce filtrage par scan
+- Le menu "Scan" dans la page permet de choisir un `scan_id` issu de `audit/scan_history.json` ou des champs `scan_id` présents dans vos logs IA/réponse.
+- Le bouton "Reset" repasse en vue agrégée sur l'ensemble des scans.
 
 ## Personnalisation
 - Les fichiers affichés sont dans `public/data/*.json` (copiés depuis `audit/`).
