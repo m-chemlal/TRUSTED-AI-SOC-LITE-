@@ -1,0 +1,5 @@
+__pycache__/
+logs/ia_events.log
+logs/last_features.json
+models/*.pkl
+*.pyc
