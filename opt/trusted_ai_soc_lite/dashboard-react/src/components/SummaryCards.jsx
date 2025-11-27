@@ -21,7 +21,8 @@ export function SummaryCards({ aggregates, totalHosts, history }) {
     },
   ];
 
-  const lastScan = aggregates.lastUpdated || history?.map((h) => h.timestamp).sort().at(-1);
+  const lastScanIso = aggregates.lastUpdated || history?.map((h) => h.timestamp).sort().at(-1);
+  const lastScan = lastScanIso ? new Date(lastScanIso).toISOString().replace('T', ' ').replace('Z', '') : null;
 
   return (
     <div className="grid five">
@@ -37,7 +38,7 @@ export function SummaryCards({ aggregates, totalHosts, history }) {
       <div className="card kpi">
         <p className="muted" style={{ margin: 0 }}>Last update</p>
         <div className="metrics">
-          <span className="value" style={{ color: '#10b981' }}>{lastScan ? lastScan.replace('T', ' ').replace('Z', '') : '—'}</span>
+          <span className="value" style={{ color: '#10b981' }}>{lastScan || '—'}</span>
         </div>
         <small className="muted">Most recent IA decision</small>
       </div>

@@ -11,7 +11,15 @@ function Skeleton() {
 }
 
 export default function App() {
-  const { iaDecisions, responses, history, aggregates, loading } = useDashboardData();
+  const {
+    iaDecisions,
+    responses,
+    history,
+    aggregates,
+    loading,
+    usingSamples,
+    error,
+  } = useDashboardData();
 
   return (
     <div className="app-shell">
@@ -28,6 +36,15 @@ export default function App() {
         <Skeleton />
       ) : (
         <>
+          {(usingSamples || error) && (
+            <div className={`callout ${error ? 'danger' : 'warning'}`}>
+              <strong>{error ? 'Fallback mode:' : 'Sample data in use.'}</strong>{' '}
+              {error
+                ? 'Live data could not be loaded; showing bundled samples instead.'
+                : 'Sync your latest audit JSONs via ./dashboard-react/sync_data.sh to replace the demo numbers.'}
+            </div>
+          )}
+
           <SummaryCards aggregates={aggregates} totalHosts={iaDecisions.length} history={history} />
 
           <div className="grid two" style={{ marginTop: 18 }}>
