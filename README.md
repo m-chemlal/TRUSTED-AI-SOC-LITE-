@@ -135,6 +135,40 @@ Options utiles :
 
 Toutes les options sont détaillées via `./run_all.sh --help`.
 
+### 🧭 Mode « cœur » uniquement (Nmap ➜ IA ➜ réponse, sans Wazuh ni dashboard)
+
+Vous pouvez ignorer Wazuh et le dashboard et n’utiliser que les trois modules clés : `nmap_scanner/`, `ai_engine/` et `response_engine/`.
+
+1. Prérequis Debian minimal : `sudo apt install nmap python3 python3-venv git`.
+2. Déployer `/opt/trusted_ai_soc_lite/` (comme dans la section précédente) puis placer-vous à la racine :
+   ```bash
+   cd /opt/trusted_ai_soc_lite
+   ```
+3. Lancer le pipeline minimal avec le nouveau script dédié :
+   ```bash
+   ./run_core.sh --profile full
+   ```
+   * Le flux exécute : découverte de cibles (si activée) → scan Nmap → IA/TI → moteur de réponse.
+   * Aucun composant Wazuh ou dashboard n’est appelé ; les logs restent locaux dans `ai_engine/logs` et `audit/`.
+
+Options principales de `run_core.sh` :
+
+- `--no-target-refresh` : garder votre `nmap_scanner/targets.txt` tel quel.
+- `--ti-offline` : forcer les enrichissements TI en mode hors-ligne uniquement.
+- `--ai-extra "..."` / `--responder-extra "..."` : relayer des options supplémentaires à l’IA ou au moteur de réponse.
+- `--extra-nmap-args "--top-ports 200"` : ajouter des paramètres Nmap spécifiques.
+
+Arborescence minimale si vous ne souhaitez garder que ces briques :
+
+```
+opt/trusted_ai_soc_lite/
+├── nmap_scanner/
+├── ai_engine/
+├── response_engine/
+├── audit/
+└── run_core.sh
+```
+
 ### 🧭 Mode « Nmap ➜ IA ➜ Dashboard » uniquement (sans Wazuh ni réponse)
 
 Si vous voulez un parcours minimal qui ne dépend ni de Wazuh ni du moteur de réponse :
