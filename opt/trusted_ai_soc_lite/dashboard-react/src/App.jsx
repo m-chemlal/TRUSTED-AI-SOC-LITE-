@@ -138,7 +138,7 @@ export default function App() {
                 </div>
               )}
             </div>
-            <CveDetails cveTable={aggregates.cveTable} />
+            <CveDetails cveTable={filteredAggregates.cveTable} />
           </div>
 
           <div style={{ marginTop: 18 }}>
