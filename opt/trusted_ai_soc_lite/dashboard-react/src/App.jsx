@@ -44,14 +44,16 @@ export default function App() {
               {responses.length === 0 ? (
                 <small className="muted">No actions recorded</small>
               ) : (
-                <ul className="list compact">
-                  {responses.map((r, idx) => (
-                    <li key={`${r.ip}-${idx}`}>
-                      <strong>{r.action}</strong> on <strong>{r.ip}</strong> — {r.risk_level}
-                      {r.timestamp ? ` @ ${r.timestamp.replace('T', ' ').replace('Z', '')}` : ''}
-                    </li>
-                  ))}
-                </ul>
+                <div className="scrollable">
+                  <ul className="list compact">
+                    {responses.map((r, idx) => (
+                      <li key={`${r.ip}-${idx}`}>
+                        <strong>{r.action}</strong> on <strong>{r.ip}</strong> — {r.risk_level}
+                        {r.timestamp ? ` @ ${r.timestamp.replace('T', ' ').replace('Z', '')}` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
             <CveDetails cveTable={aggregates.cveTable} />
