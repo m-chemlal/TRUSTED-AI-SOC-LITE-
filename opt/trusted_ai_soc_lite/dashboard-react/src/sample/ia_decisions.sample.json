@@ -1,0 +1,39 @@
+[
+  {
+    "host": "192.168.1.10",
+    "scan_id": "scan_2025-11-27_1224",
+    "risk_score": 86,
+    "risk_level": "critical",
+    "timestamp": "2025-11-27T12:24:46Z",
+    "cves": ["CVE-2024-1111", "CVE-2023-2222"],
+    "services": ["http", "ssh"],
+    "top_findings": [
+      "Apache 2.4.65 CVE-2024-1111 (CVSS 9.8)",
+      "OpenSSH 10.0p2 outdated",
+      "Directory brute-force exposure"
+    ]
+  },
+  {
+    "host": "192.168.1.15",
+    "scan_id": "scan_2025-11-26_2105",
+    "risk_score": 64,
+    "risk_level": "high",
+    "timestamp": "2025-11-26T21:05:00Z",
+    "cves": ["CVE-2024-0901"],
+    "services": ["ftp", "ssh"],
+    "top_findings": [
+      "FTP anonymous login allowed",
+      "SSH weak KEX suite"
+    ]
+  },
+  {
+    "host": "192.168.1.20",
+    "scan_id": "scan_2025-11-25_0912",
+    "risk_score": 22,
+    "risk_level": "medium",
+    "timestamp": "2025-11-25T09:12:10Z",
+    "cves": [],
+    "services": ["http"],
+    "top_findings": ["Missing HSTS header"]
+  }
+]
