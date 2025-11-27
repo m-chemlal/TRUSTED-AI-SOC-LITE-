@@ -82,6 +82,7 @@ export default function App() {
             <span className="select-label">Scan</span>
             <select
               id="scan-select"
+              className="select-control"
               value={selectedScan}
               onChange={(e) => setSelectedScan(e.target.value)}
             >
@@ -92,6 +93,7 @@ export default function App() {
                 </option>
               ))}
             </select>
+            <span className="select-chevron">▾</span>
           </div>
           {selectedScan !== 'all' && (
             <button className="ghost" type="button" onClick={() => setSelectedScan('all')}>
