@@ -195,6 +195,8 @@ En suivant ces étapes, vous passez du clone initial jusqu'aux fichiers de sorti
 └── run_all.sh           # Variante avec presets et OpenVAS optionnel
 ```
 
+📘 Pour un rappel synthétique du rôle de chaque fichier/dossier, voir `docs/FILE_ROLES.md`.
+
 ## 3. Utilisation des scripts
 
 ### `run_core.sh`
