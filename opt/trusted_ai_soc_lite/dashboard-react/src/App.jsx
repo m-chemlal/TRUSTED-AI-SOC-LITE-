@@ -42,9 +42,12 @@ export default function App() {
 
   const filteredResponses = useMemo(() => {
     if (selectedScan === 'all') return responses;
-    return responses.filter((item) =>
-      item.scan_id === selectedScan || (selectedHosts && item.ip && selectedHosts.has(item.ip)),
-    );
+    return responses.filter((item) => {
+      const fromScan = item.scan_id === selectedScan;
+      const matchesHost = selectedHosts &&
+        ((item.ip && selectedHosts.has(item.ip)) || (item.host && selectedHosts.has(item.host)));
+      return fromScan || matchesHost;
+    });
   }, [responses, selectedHosts, selectedScan]);
 
   const scanLookup = useMemo(() => {
