@@ -109,6 +109,17 @@ Ces étapes supposent une Debian fraîche (VM ou poste). Copiez/collez les blocs
    - `ia_decisions.json` agrège l'historique des décisions.
    - `response_actions.json` trace les blocages UFW/emails si la réponse auto est active.
 
+6bis) **Afficher un dashboard React moderne (sans Wazuh)**
+   ```bash
+   cd /opt/trusted_ai_soc_lite/dashboard-react
+   ./sync_data.sh          # copie les fichiers audit vers public/data (sinon charge un jeu d'exemple)
+   npm install             # première fois uniquement
+   npm run dev             # serveur Vite sur http://localhost:4173
+   ```
+   - Ouvrez le navigateur sur http://localhost:4173 pour voir : KPIs, timeline des scans, CVE/TI, table des hôtes et actions de
+     réponse.
+   - Après chaque nouveau scan : relancez `./sync_data.sh` pour rafraîchir les données.
+
 7) **Personnaliser ou relancer**
    - Changer de preset : `./run_core.sh --profile fast|balanced|full|aggressive`.
    - Passer des arguments Nmap : `--extra-nmap-args "--top-ports 200"`.
