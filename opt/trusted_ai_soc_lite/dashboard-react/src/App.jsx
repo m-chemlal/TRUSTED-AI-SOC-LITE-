@@ -131,8 +131,8 @@ export default function App() {
                 <h3 style={{ margin: 0 }}>Latest actions</h3>
                 <small>Response engine decisions</small>
               </div>
-              {filteredResponses.length === 0 ? (
-                <small className="muted">No actions recorded for this view</small>
+              {responses.length === 0 ? (
+                <small className="muted">No actions recorded</small>
               ) : (
                 <div className="scrollable">
                   <ul className="list compact">
