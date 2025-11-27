@@ -1,8 +1,0 @@
-# Ce fichier est géré automatiquement par generate_targets.py.
-# L'exécution par défaut de run_scan.sh régénère son contenu avec les IP / réseaux
-# détectés sur cette machine Debian. Exportez AUTO_TARGET_DISCOVERY=0 avant d'exécuter
-# run_scan.sh si vous souhaitez conserver une version manuelle.
-#
-# Exécutez manuellement :
-#   python3 generate_targets.py --force
-# pour recalculer les cibles.
