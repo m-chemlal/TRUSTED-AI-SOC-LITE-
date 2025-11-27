@@ -33,6 +33,10 @@ Aucun composant Wazuh ni dashboard externe n'est requis : les journaux restent l
    ```bash
    nano /opt/trusted_ai_soc_lite/nmap_scanner/targets.txt
    ```
+   > Par défaut, `run_core.sh`/`run_scan.sh` régénèrent `targets.txt` avant chaque
+   > exécution en détectant vos interfaces (`generate_targets.py`). Si vous
+   > préférez conserver un fichier entièrement manuel, lancez avec
+   > `--no-target-refresh` ou exportez `AUTO_TARGET_DISCOVERY=0`.
 
 5. **Lancer le pipeline complet (scan ➜ IA ➜ réponse)**
    ```bash
@@ -104,6 +108,17 @@ Ces étapes supposent une Debian fraîche (VM ou poste). Copiez/collez les blocs
    - `ia_events.log` contient chaque verdict IA (score, label, explications).
    - `ia_decisions.json` agrège l'historique des décisions.
    - `response_actions.json` trace les blocages UFW/emails si la réponse auto est active.
+
+6bis) **Afficher un dashboard React moderne (sans Wazuh)**
+   ```bash
+   cd /opt/trusted_ai_soc_lite/dashboard-react
+   ./sync_data.sh          # copie les fichiers audit vers public/data (sinon charge un jeu d'exemple)
+   npm install             # première fois uniquement
+   npm run dev             # serveur Vite sur http://localhost:4173
+   ```
+   - Ouvrez le navigateur sur http://localhost:4173 pour voir : KPIs, timeline des scans, CVE/TI, table des hôtes et actions de
+     réponse.
+   - Après chaque nouveau scan : relancez `./sync_data.sh` pour rafraîchir les données.
 
 7) **Personnaliser ou relancer**
    - Changer de preset : `./run_core.sh --profile fast|balanced|full|aggressive`.
