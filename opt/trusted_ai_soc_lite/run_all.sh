@@ -3,19 +3,12 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NMAP_RUNNER="${PROJECT_ROOT}/nmap_scanner/run_scan.sh"
-DASHBOARD_APP="${PROJECT_ROOT}/dashboard/app.py"
 OPENVAS_LAUNCHER="${PROJECT_ROOT}/nmap_scanner/openvas_integration/launch_openvas_scan.py"
 
 SCAN_PROFILE="full"
 AUTO_TARGET_DISCOVERY="${AUTO_TARGET_DISCOVERY:-1}"
 AI_AUTORUN="${AI_AUTORUN:-1}"
 RESPONSE_AUTORUN="${RESPONSE_AUTORUN:-1}"
-RUN_DASHBOARD=0
-KEEP_DASHBOARD=0
-DASHBOARD_ONLY=0
-SEED_SAMPLE_DATA=0
-DASHBOARD_PORT="${DASHBOARD_PORT:-8501}"
-DASHBOARD_LOG="${PROJECT_ROOT}/dashboard/streamlit.log"
 TI_OFFLINE=0
 LOOP_INTERVAL=""
 DRY_RUN=0
@@ -31,7 +24,7 @@ usage() {
 Usage: run_all.sh [options]
 
 This wrapper refreshes targets, launches the Nmap scanner (with AI + response automation),
-and optionally starts the Streamlit dashboard or an OpenVAS task.
+and can optionally trigger an OpenVAS task first.
 
 Options:
   -p, --profile <fast|balanced|full|aggressive>  Choose the scan preset (default: full)
@@ -44,50 +37,10 @@ Options:
       --responder-extra "..."                    Extra args forwarded to responder.py
       --openvas                                  Trigger the OpenVAS helper before Nmap
       --openvas-args "..."                       Arguments for the OpenVAS helper
-      --dashboard                                Launch the Streamlit dashboard (background)
-      --dashboard-only                           Only start the dashboard (skip scans)
-      --seed-sample-data                         Populate demo data for the dashboard
-      --keep-dashboard                           Keep dashboard running after the script exits
       --loop <seconds>                           Rerun the full pipeline every N seconds
       --dry-run                                  Print the resolved commands without executing
       --help                                     Display this message
 USAGE
-}
-
-start_dashboard() {
-  if [ ! -f "${DASHBOARD_APP}" ]; then
-    echo "[AVERTISSEMENT] Dashboard introuvable (${DASHBOARD_APP})"
-    return 1
-  fi
-  if ! command -v streamlit >/dev/null 2>&1; then
-    echo "[AVERTISSEMENT] streamlit n'est pas installé (pip install -r dashboard/requirements.txt)"
-    return 1
-  fi
-  mkdir -p "$(dirname "${DASHBOARD_LOG}")"
-  echo "[INFO] Lancement du dashboard Streamlit (port ${DASHBOARD_PORT})"
-  nohup streamlit run "${DASHBOARD_APP}" --server.port "${DASHBOARD_PORT}" --server.headless true > "${DASHBOARD_LOG}" 2>&1 &
-  DASHBOARD_PID=$!
-  echo "[OK] Dashboard démarré (PID ${DASHBOARD_PID}). Logs: ${DASHBOARD_LOG}"
-}
-
-seed_sample_data() {
-  local seeder="${PROJECT_ROOT}/dashboard/seed_sample_data.py"
-  if [ ! -x "${seeder}" ]; then
-    echo "[AVERTISSEMENT] Seeder introuvable (${seeder})"
-    return 1
-  fi
-  if [ "${DRY_RUN}" = "1" ]; then
-    echo "[DRY-RUN] ${seeder}"
-    return 0
-  fi
-  "${seeder}" --force
-}
-
-stop_dashboard() {
-  if [ -n "${DASHBOARD_PID:-}" ] && kill -0 "${DASHBOARD_PID}" 2>/dev/null; then
-    echo "[INFO] Arrêt du dashboard (PID ${DASHBOARD_PID})"
-    kill "${DASHBOARD_PID}"
-  fi
 }
 
 run_openvas_helper() {
@@ -106,11 +59,6 @@ run_openvas_helper() {
 }
 
 run_pipeline_once() {
-  if [ "${DASHBOARD_ONLY}" = "1" ]; then
-    echo "[INFO] Mode dashboard uniquement : aucune opération Nmap/IA lancée."
-    return 0
-  fi
-
   if [ "${RUN_OPENVAS}" = "1" ]; then
     run_openvas_helper
   fi
@@ -171,14 +119,6 @@ while [[ $# -gt 0 ]]; do
       RUN_OPENVAS=1; shift;;
     --openvas-args)
       OPENVAS_ARGS="$2"; shift 2;;
-    --dashboard)
-      RUN_DASHBOARD=1; shift;;
-    --dashboard-only)
-      RUN_DASHBOARD=1; DASHBOARD_ONLY=1; shift;;
-    --seed-sample-data)
-      SEED_SAMPLE_DATA=1; shift;;
-    --keep-dashboard)
-      KEEP_DASHBOARD=1; shift;;
     --loop)
       LOOP_INTERVAL="$2"; shift 2;;
     --dry-run)
@@ -191,16 +131,6 @@ while [[ $# -gt 0 ]]; do
       exit 1;;
   esac
 done
-
-if [ "${RUN_DASHBOARD}" = "1" ] && [ "${DRY_RUN}" = "0" ]; then
-  if [ "${SEED_SAMPLE_DATA}" = "1" ]; then
-    seed_sample_data || true
-  fi
-  start_dashboard || true
-  if [ "${KEEP_DASHBOARD}" = "0" ]; then
-    trap stop_dashboard EXIT
-  fi
-fi
 
 run_pipeline_once
 
@@ -215,10 +145,6 @@ if [ -n "${LOOP_INTERVAL}" ]; then
     START_TIME="$(date -Is)"
     run_pipeline_once
   done
-fi
-
-if [ "${RUN_DASHBOARD}" = "1" ] && [ "${KEEP_DASHBOARD}" = "1" ]; then
-  echo "[INFO] Dashboard laissé actif. Arrêtez-le manuellement (PID ${DASHBOARD_PID:-"unknown"})."
 fi
 
 exit 0

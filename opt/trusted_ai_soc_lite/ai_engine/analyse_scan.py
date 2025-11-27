@@ -22,7 +22,6 @@ from ti_enricher import ThreatIntelClient
 
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_LOG = BASE_DIR / "logs/ia_events.log"
-DEFAULT_WAZUH_LOG = Path("/var/log/trusted_ai_soc_lite.log")
 DEFAULT_AUDIT = (BASE_DIR.parent / "audit/ia_decisions.json").resolve()
 DEFAULT_MODEL = BASE_DIR / "models/model.pkl"
 LAST_FEATURES = BASE_DIR / "logs/last_features.json"
@@ -199,7 +198,6 @@ def analyse_report(
     report_path: Path,
     model_path: Path,
     log_path: Path,
-    wazuh_log: Path | None,
     audit_path: Path,
     *,
     scan_history: Path | None,
@@ -247,11 +245,6 @@ def analyse_report(
             event["risk_level"] = risk_label(event["risk_score"])
         events.append(event)
         persist_json_line(event, log_path)
-        if wazuh_log is not None:
-            try:
-                persist_json_line(event, wazuh_log)
-            except PermissionError:
-                print(f"[WARN] Impossible d'écrire dans {wazuh_log}, permissions insuffisantes", file=sys.stderr)
     for event in events:
         update_audit_file(event, audit_path)
     if scan_history is not None:
@@ -264,12 +257,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("report", type=Path, help="Rapport JSON produit par parse_nmap.py")
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
     parser.add_argument("--log-file", type=Path, default=DEFAULT_LOG)
-    parser.add_argument(
-        "--wazuh-log",
-        type=str,
-        default=str(DEFAULT_WAZUH_LOG),
-        help="Fichier surveillé par le Wazuh Agent (désactiver avec --wazuh-log '' )",
-    )
     parser.add_argument("--audit-file", type=Path, default=DEFAULT_AUDIT)
     parser.add_argument("--scan-history", type=Path, default=SCAN_HISTORY)
     parser.add_argument("--ti-cache", type=Path, default=DEFAULT_TI_CACHE)
@@ -281,12 +268,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
-    wazuh_path = Path(args.wazuh_log) if args.wazuh_log else None
     events = analyse_report(
         args.report,
         args.model,
         args.log_file,
-        wazuh_path,
         args.audit_file,
         scan_history=args.scan_history,
         ti_cache=args.ti_cache,

@@ -225,7 +225,7 @@ else
         ANALYSE_CMD+=("${EXTRA_AI_ARGS[@]}")
       fi
       if "${ANALYSE_CMD[@]}"; then
-        echo "[OK] Analyse IA terminée et envoyée à Wazuh"
+        echo "[OK] Analyse IA terminée"
       else
         echo "[ERREUR] L'analyse IA automatique a échoué" >&2
       fi

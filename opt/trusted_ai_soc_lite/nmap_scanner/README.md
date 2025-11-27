@@ -88,12 +88,10 @@ Le script :
 1. vérifie la présence de `nmap` et `targets.txt` ;
 2. exécute un **scan SOC complet stabilisé** (détection de version, scripts NSE `default,vuln,auth,malware,safe`, fingerprinting OS) pour éviter les gels sur les réseaux encombrés ;
 3. génère `reports/full_soc_scan_YYYY-MM-DD_HHMMSS.xml` puis appelle `parse_nmap.py` (qui écrit automatiquement le JSON associé) ;
-4. livre un rapport prêt à être ingéré par l'IA et Wazuh.
+4. livre un rapport prêt à être ingéré par l'IA.
 
-💡 Pour tout déclencher depuis la racine du projet (scan + IA + TI + réponse + dashboard),
-utilisez simplement `../run_all.sh`. Ce wrapper configure les mêmes variables
-(`SCAN_PROFILE`, `AI_AUTORUN`, `RESPONSE_AUTORUN`, etc.), peut lancer OpenVAS avant
-Nmap et redémarre la boucle selon `--loop <secondes>`.
+💡 Pour tout déclencher depuis la racine du projet (scan + IA + réponse),
+utilisez simplement `../run_core.sh` ou `../run_all.sh` (sans dépendances dashboard/Wazuh).
 
 ### Choisir un profil de scan adapté
 
@@ -167,7 +165,6 @@ que la valeur de `SCAN_PROFILE`.
   | `AI_ENGINE_DIR` | Répertoire contenant `analyse_scan.py` et le `venv`. |
   | `AI_MODEL_PATH` | Modèle IA à charger (par défaut `ai_engine/models/model.pkl`). |
   | `AI_LOG_FILE` | Journal local IA (par défaut `ai_engine/logs/ia_events.log`). |
-  | `AI_WAZUH_LOG` | Fichier surveillé par Wazuh (par défaut `/var/log/trusted_ai_soc_lite.log`). |
   | `AI_AUDIT_FILE` | Historique structuré (par défaut `../audit/ia_decisions.json`). |
 
 - Si un `venv` est présent dans `ai_engine/venv`, il est automatiquement
@@ -177,7 +174,7 @@ que la valeur de `SCAN_PROFILE`.
 - Nouveaux toggles disponibles :
   - `AI_DISABLE_SHAP=1` ou `AI_DISABLE_LIME=1` pour accélérer les tests ;
   - `AI_TI_OFFLINE=1` pour forcer le mode Threat Intelligence hors-ligne ;
-  - `AI_SCAN_HISTORY=/chemin` pour personnaliser le fichier exploité par le dashboard.
+  - `AI_SCAN_HISTORY=/chemin` pour personnaliser le fichier d'historique local.
 
 ### Brancher OpenVAS / Greenbone
 
@@ -293,7 +290,6 @@ fois installé, vous pouvez :
    conformes aux durcissements attendus).
 4. **Produire des rapports XML/JSON** compatibles avec l'IA interne (`ai_engine`)
    pour scoring, priorisation et explications XAI.
-5. **Alimenter Wazuh** via les logs IA enrichis afin d'avoir une traçabilité SOC
    complète (détection → explication → réponse).
 6. **Automatiser vos contrôles** grâce à cron/systemd, en conservant les traces dans
    `reports/` pour audit ou relecture.
