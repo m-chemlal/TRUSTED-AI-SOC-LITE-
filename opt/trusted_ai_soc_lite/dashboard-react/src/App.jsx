@@ -1,8 +1,9 @@
 import React from 'react';
 import { SummaryCards } from './components/SummaryCards.jsx';
-import { Trends } from './components/Trends.jsx';
 import { CveDetails } from './components/CveDetails.jsx';
 import { HostTable } from './components/HostTable.jsx';
+import { RiskBars } from './components/RiskBars.jsx';
+import { RiskDonut } from './components/RiskDonut.jsx';
 import { useDashboardData } from './hooks/useDashboardData.js';
 
 function Skeleton() {
@@ -16,10 +17,9 @@ export default function App() {
     <div className="app-shell">
       <header className="header">
         <div>
-          <h1>Trusted AI SOC Lite — React Dashboard</h1>
-          <small style={{ color: '#94a3b8' }}>
-            Live view of Nmap → IA/XAI → response (no SIEM required)
-          </small>
+          <p className="eyebrow">Trusted AI SOC Lite</p>
+          <h1>Risk & Vulnerability Overview</h1>
+          <small className="muted">Nmap → IA/XAI → Response — modern single-page view</small>
         </div>
         <div className="badge">Live</div>
       </header>
@@ -28,17 +28,23 @@ export default function App() {
         <Skeleton />
       ) : (
         <>
+          <SummaryCards aggregates={aggregates} totalHosts={iaDecisions.length} history={history} />
+
           <div className="grid two" style={{ marginTop: 18 }}>
-            <SummaryCards aggregates={aggregates} totalHosts={iaDecisions.length} />
+            <RiskBars aggregates={aggregates} />
+            <RiskDonut aggregates={aggregates} />
+          </div>
+
+          <div className="grid two" style={{ marginTop: 18 }}>
             <div className="card">
               <div className="section-title">
                 <h3 style={{ margin: 0 }}>Latest actions</h3>
                 <small>Response engine decisions</small>
               </div>
               {responses.length === 0 ? (
-                <small style={{ color: '#94a3b8' }}>No actions recorded</small>
+                <small className="muted">No actions recorded</small>
               ) : (
-                <ul className="list">
+                <ul className="list compact">
                   {responses.map((r, idx) => (
                     <li key={`${r.ip}-${idx}`}>
                       <strong>{r.action}</strong> on <strong>{r.ip}</strong> — {r.risk_level}
@@ -48,20 +54,16 @@ export default function App() {
                 </ul>
               )}
             </div>
-          </div>
-
-          <div className="grid two" style={{ marginTop: 16 }}>
-            <Trends history={history} />
             <CveDetails cveTable={aggregates.cveTable} />
           </div>
 
-          <div style={{ marginTop: 16 }}>
+          <div style={{ marginTop: 18 }}>
             <HostTable iaDecisions={iaDecisions} />
           </div>
 
           <div className="footer-note">
-            Tip: run <code>./run_all.sh --profile full</code> then <code>./dashboard-react/sync_data.sh</code> and
-            <code> npm run dev</code> to refresh this UI with your latest scans.
+            After each scan, run <code>./dashboard-react/sync_data.sh</code> then <code>npm run dev</code> to refresh
+            this view with live data.
           </div>
         </>
       )}

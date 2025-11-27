@@ -126,6 +126,61 @@ Ces étapes supposent une Debian fraîche (VM ou poste). Copiez/collez les blocs
    - Désactiver la réponse : `--response-off` ou `RESPONDER_AUTORUN=0`.
    - Désactiver TI en ligne : `--ti-offline`.
 
+### Parcours complet : du scan au dashboard React (étape par étape)
+Ce scénario part d'une Debian fraîche et aboutit à l'affichage des résultats dans le dashboard React, sans dépendre d'un SIEM exte
+rne.
+
+1) **Installer les dépendances système**
+   ```bash
+   sudo apt update
+   sudo apt install -y git nmap python3 python3-venv rsync nodejs npm
+   ```
+
+2) **Cloner et déployer sous /opt**
+   ```bash
+   cd /opt
+   sudo git clone https://github.com/<votre-espace>/TRUSTED-AI-SOC-LITE-.git trusted_ai_soc_lite_repo
+   cd trusted_ai_soc_lite_repo
+   sudo mkdir -p /opt/trusted_ai_soc_lite
+   sudo rsync -av opt/trusted_ai_soc_lite/ /opt/trusted_ai_soc_lite/
+   ```
+
+3) **Installer le venv IA/XAI**
+   ```bash
+   cd /opt/trusted_ai_soc_lite/ai_engine
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   deactivate
+   ```
+
+4) **Lancer un scan complet (Nmap ➜ IA ➜ réponse)**
+   ```bash
+   cd /opt/trusted_ai_soc_lite
+   ./run_all.sh --profile full --ti-offline
+   ```
+   - pour un essai court : `./run_all.sh --profile fast --ti-offline --response-off`
+   - pour conserver un `targets.txt` manuel : ajouter `--no-target-refresh`
+
+5) **Synchroniser les données pour le dashboard React**
+   ```bash
+   cd /opt/trusted_ai_soc_lite/dashboard-react
+   ./sync_data.sh   # copie audit/*.json vers public/data, ou injecte un dataset de démo si vide
+   ```
+
+6) **Démarrer le dashboard React**
+   ```bash
+   npm install      # première fois uniquement
+   npm run dev      # dashboard sur http://localhost:4173
+   ```
+
+7) **Après chaque nouveau scan**
+   ```bash
+   cd /opt/trusted_ai_soc_lite/dashboard-react
+   ./sync_data.sh   # rafraîchit les données affichées
+   ```
+
+
 En suivant ces étapes, vous passez du clone initial jusqu'aux fichiers de sortie (rapports Nmap, journaux IA, audit, réponse) sans dépendance à Wazuh ni dashboard externe.
 
 ## 2. Architecture minimale

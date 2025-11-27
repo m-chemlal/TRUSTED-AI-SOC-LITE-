@@ -1,41 +1,45 @@
 import React from 'react';
 
 const palette = {
-  low: '#34d399',
-  medium: '#fbbf24',
+  low: '#22c55e',
+  medium: '#f59e0b',
   high: '#fb923c',
-  critical: '#f87171',
+  critical: '#ef4444',
 };
 
-export function SummaryCards({ aggregates, totalHosts }) {
-  const items = [
-    { label: 'Critical', key: 'critical' },
-    { label: 'High', key: 'high' },
-    { label: 'Medium', key: 'medium' },
-    { label: 'Low', key: 'low' },
+export function SummaryCards({ aggregates, totalHosts, history }) {
+  const cards = [
+    { label: 'Critical', value: aggregates.byLevel.critical || 0, accent: palette.critical },
+    { label: 'High', value: aggregates.byLevel.high || 0, accent: palette.high },
+    { label: 'Medium', value: aggregates.byLevel.medium || 0, accent: palette.medium },
+    { label: 'Low', value: aggregates.byLevel.low || 0, accent: palette.low },
+    {
+      label: 'Avg. risk score',
+      value: `${aggregates.avgScore}/100`,
+      accent: '#0ea5e9',
+      helper: `${totalHosts} hosts scanned`,
+    },
   ];
+
+  const lastScan = aggregates.lastUpdated || history?.map((h) => h.timestamp).sort().at(-1);
+
   return (
-    <div className="grid four">
-      {items.map((item) => (
-        <div className="card" key={item.key}>
-          <small>{item.label}</small>
+    <div className="grid five">
+      {cards.map((card) => (
+        <div className="card kpi" key={card.label}>
+          <p className="muted" style={{ margin: 0 }}>{card.label}</p>
           <div className="metrics">
-            <span className="value" style={{ color: palette[item.key] }}>
-              {aggregates.byLevel[item.key] || 0}
-            </span>
-            <span className="label">hosts</span>
+            <span className="value" style={{ color: card.accent }}>{card.value}</span>
           </div>
+          {card.helper && <small className="muted">{card.helper}</small>}
         </div>
       ))}
-      <div className="card">
-        <small>Avg. risk score</small>
+      <div className="card kpi">
+        <p className="muted" style={{ margin: 0 }}>Last update</p>
         <div className="metrics">
-          <span className="value">{aggregates.avgScore}</span>
-          <span className="label">/ 100</span>
+          <span className="value" style={{ color: '#10b981' }}>{lastScan ? lastScan.replace('T', ' ').replace('Z', '') : '—'}</span>
         </div>
-        <div className="metrics" style={{ marginTop: 4 }}>
-          <span className="label">Total hosts: {totalHosts}</span>
-        </div>
+        <small className="muted">Most recent IA decision</small>
       </div>
     </div>
   );

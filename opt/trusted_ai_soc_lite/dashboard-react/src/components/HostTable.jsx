@@ -1,30 +1,14 @@
 import React from 'react';
 
-const palette = {
-  low: '#34d399',
-  medium: '#fbbf24',
-  high: '#fb923c',
-  critical: '#f87171',
-};
-
-function riskPill(level) {
-  const key = (level || '').toLowerCase();
-  return (
-    <span className={`pill ${key}`} style={{ minWidth: 82 }}>
-      {level || 'n/a'}
-    </span>
-  );
-}
-
 export function HostTable({ iaDecisions }) {
   return (
     <div className="card">
       <div className="section-title">
-        <h3 style={{ margin: 0 }}>Hosts</h3>
-        <small>Latest IA verdict per host</small>
+        <h3 style={{ margin: 0 }}>My Hosts</h3>
+        <small className="muted">Latest IA verdict per asset</small>
       </div>
       {iaDecisions.length === 0 ? (
-        <small style={{ color: '#94a3b8' }}>No hosts scanned yet</small>
+        <small className="muted">No hosts scanned yet</small>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table className="table">
@@ -41,26 +25,28 @@ export function HostTable({ iaDecisions }) {
             <tbody>
               {iaDecisions.map((row) => (
                 <tr key={row.host}>
-                  <td style={{ color: '#22d3ee', fontWeight: 600 }}>{row.host}</td>
-                  <td>{riskPill(row.risk_level)}</td>
-                  <td style={{ color: palette[(row.risk_level || '').toLowerCase()] || '#e2e8f0' }}>
-                    {row.risk_score ?? '—'}
-                  </td>
+                  <td className="host-name">{row.host}</td>
                   <td>
-                    <ul className="list">
+                    <span className={`pill ${(row.risk_level || '').toLowerCase()}`} style={{ minWidth: 90 }}>
+                      {row.risk_level || 'n/a'}
+                    </span>
+                  </td>
+                  <td className={`score ${(row.risk_level || '').toLowerCase()}`}>{row.risk_score ?? '—'}</td>
+                  <td>
+                    <ul className="list compact">
                       {(row.services || []).map((s) => (
                         <li key={`${row.host}-${s}`}>{s}</li>
                       ))}
                     </ul>
                   </td>
                   <td>
-                    <ul className="list">
+                    <ul className="list compact">
                       {(row.top_findings || []).map((f, idx) => (
                         <li key={`${row.host}-f-${idx}`}>{f}</li>
                       ))}
                     </ul>
                   </td>
-                  <td>{row.timestamp ? row.timestamp.replace('T', ' ').replace('Z', '') : '—'}</td>
+                  <td className="muted">{row.timestamp ? row.timestamp.replace('T', ' ').replace('Z', '') : '—'}</td>
                 </tr>
               ))}
             </tbody>
