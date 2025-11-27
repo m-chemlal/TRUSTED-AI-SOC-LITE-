@@ -51,6 +51,68 @@ Aucun composant Wazuh ni dashboard externe n'est requis : les journaux restent l
    ```
    Cette séquence fonctionne sur un dépôt GitHub vide (sans README/LICENCE). Le `-u` règle l'upstream pour les pushes suivants.
 
+## 1bis. Pas-à-pas détaillé (de zéro jusqu'aux résultats)
+
+Ces étapes supposent une Debian fraîche (VM ou poste). Copiez/collez les blocs dans un terminal root ou sudo.
+
+1) **Installer les dépendances système**
+   ```bash
+   sudo apt update
+   sudo apt install -y git nmap python3 python3-venv rsync
+   ```
+
+2) **Récupérer le dépôt et déployer sous /opt**
+   ```bash
+   cd /opt
+   sudo git clone https://github.com/<votre-espace>/TRUSTED-AI-SOC-LITE-.git trusted_ai_soc_lite_repo
+   cd trusted_ai_soc_lite_repo
+   sudo mkdir -p /opt/trusted_ai_soc_lite
+   sudo rsync -av opt/trusted_ai_soc_lite/ /opt/trusted_ai_soc_lite/
+   ```
+
+3) **Préparer l'IA (venv + dépendances)**
+   ```bash
+   cd /opt/trusted_ai_soc_lite/ai_engine
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   deactivate
+   ```
+
+4) **Régler les cibles de scan (optionnel mais recommandé)**
+   ```bash
+   nano /opt/trusted_ai_soc_lite/nmap_scanner/targets.txt
+   ```
+   *Par défaut : loopback, hôte local, /24, scanme.nmap.org.*
+
+5) **Lancer un scan complet + IA + réponse**
+   ```bash
+   cd /opt/trusted_ai_soc_lite
+   ./run_core.sh --profile full --ti-offline
+   ```
+   - La commande régénère `targets.txt` (sauf `--no-target-refresh`), lance Nmap (XML), convertit en JSON, exécute l'IA/XAI puis le moteur de réponse.
+   - Si vous voulez un essai court : `./run_core.sh --profile fast --ti-offline --response-off`.
+
+6) **Consulter les résultats produits**
+   ```bash
+   ls /opt/trusted_ai_soc_lite/nmap_scanner/reports
+   tail -n 5 /opt/trusted_ai_soc_lite/ai_engine/logs/ia_events.log
+   tail -n 5 /opt/trusted_ai_soc_lite/audit/ia_decisions.json
+   tail -n 5 /opt/trusted_ai_soc_lite/audit/response_actions.json
+   ```
+   - Les rapports Nmap sont en XML/JSON avec les sorties NSE.
+   - `ia_events.log` contient chaque verdict IA (score, label, explications).
+   - `ia_decisions.json` agrège l'historique des décisions.
+   - `response_actions.json` trace les blocages UFW/emails si la réponse auto est active.
+
+7) **Personnaliser ou relancer**
+   - Changer de preset : `./run_core.sh --profile fast|balanced|full|aggressive`.
+   - Passer des arguments Nmap : `--extra-nmap-args "--top-ports 200"`.
+   - Désactiver la réponse : `--response-off` ou `RESPONDER_AUTORUN=0`.
+   - Désactiver TI en ligne : `--ti-offline`.
+
+En suivant ces étapes, vous passez du clone initial jusqu'aux fichiers de sortie (rapports Nmap, journaux IA, audit, réponse) sans dépendance à Wazuh ni dashboard externe.
+
 ## 2. Architecture minimale
 
 ```
