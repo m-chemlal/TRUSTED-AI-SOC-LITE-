@@ -23,32 +23,27 @@ export default function App() {
 
   const [selectedScan, setSelectedScan] = useState('all');
 
-  const selectedHosts = useMemo(() => {
-    if (selectedScan === 'all') return null;
-    return new Set(history.filter((h) => h.scan_id === selectedScan).map((h) => h.host));
-  }, [history, selectedScan]);
-
   const filteredHistory = useMemo(
     () => (selectedScan === 'all' ? history : history.filter((h) => h.scan_id === selectedScan)),
     [history, selectedScan],
   );
 
-  const filteredIa = useMemo(() => {
-    if (selectedScan === 'all') return iaDecisions;
-    return iaDecisions.filter((item) =>
-      item.scan_id === selectedScan || (selectedHosts && item.host && selectedHosts.has(item.host)),
-    );
-  }, [iaDecisions, selectedHosts, selectedScan]);
+  const filteredIa = useMemo(
+    () => (selectedScan === 'all' ? iaDecisions : iaDecisions.filter((item) => item.scan_id === selectedScan)),
+    [iaDecisions, selectedScan],
+  );
 
   const filteredResponses = useMemo(() => {
     if (selectedScan === 'all') return responses;
+    const selectedHosts = new Set(filteredHistory.map((h) => h.host).filter(Boolean));
     return responses.filter((item) => {
       const fromScan = item.scan_id === selectedScan;
-      const matchesHost = selectedHosts &&
+      const matchesHost =
+        selectedHosts.size > 0 &&
         ((item.ip && selectedHosts.has(item.ip)) || (item.host && selectedHosts.has(item.host)));
       return fromScan || matchesHost;
     });
-  }, [responses, selectedHosts, selectedScan]);
+  }, [filteredHistory, responses, selectedScan]);
 
   const scanLookup = useMemo(() => {
     const map = new Map();
