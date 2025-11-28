@@ -51,7 +51,7 @@ export function SummaryCards({ aggregates, totalHosts, history }) {
       <div className="card kpi">
         <p className="muted" style={{ margin: 0 }}>Last update</p>
         <div className="metrics">
-          <span className="value" style={{ color: '#10b981' }}>{lastScan || '—'}</span>
+          <span className="value wrap" style={{ color: '#10b981' }}>{lastScan || '—'}</span>
         </div>
         <small className="muted">Most recent IA decision</small>
       </div>
