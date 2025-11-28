@@ -33,17 +33,10 @@ export default function App() {
     [iaDecisions, selectedScan],
   );
 
-  const filteredResponses = useMemo(() => {
-    if (selectedScan === 'all') return responses;
-    const selectedHosts = new Set(filteredHistory.map((h) => h.host).filter(Boolean));
-    return responses.filter((item) => {
-      const fromScan = item.scan_id === selectedScan;
-      const matchesHost =
-        selectedHosts.size > 0 &&
-        ((item.ip && selectedHosts.has(item.ip)) || (item.host && selectedHosts.has(item.host)));
-      return fromScan || matchesHost;
-    });
-  }, [filteredHistory, responses, selectedScan]);
+  const filteredResponses = useMemo(
+    () => (selectedScan === 'all' ? responses : responses.filter((item) => item.scan_id === selectedScan)),
+    [responses, selectedScan],
+  );
 
   const scanLookup = useMemo(() => {
     const map = new Map();
