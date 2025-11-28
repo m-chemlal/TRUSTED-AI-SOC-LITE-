@@ -33,10 +33,15 @@ export default function App() {
     [iaDecisions, selectedScan],
   );
 
-  const filteredResponses = useMemo(
-    () => (selectedScan === 'all' ? responses : responses.filter((item) => item.scan_id === selectedScan)),
-    [responses, selectedScan],
-  );
+  const filteredResponses = useMemo(() => {
+    if (selectedScan === 'all') return responses;
+    const hostsInView = new Set(filteredIa.map((i) => i.host).filter(Boolean));
+    return responses.filter((item) => {
+      if (item.scan_id && item.scan_id === selectedScan) return true;
+      // Fallback: if no scan_id is present, keep actions tied to hosts/IPs visible in the current scan view.
+      return hostsInView.has(item.host) || hostsInView.has(item.ip);
+    });
+  }, [responses, selectedScan, filteredIa]);
 
   const scanLookup = useMemo(() => {
     const map = new Map();
