@@ -7,6 +7,17 @@ const palette = {
   critical: '#ef4444',
 };
 
+function formatTimestamp(ts) {
+  if (!ts) return null;
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return ts;
+  const pad = (n) => String(n).padStart(2, '0');
+  const ms = d.getMilliseconds();
+  const base = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  return ms ? `${base} ${time}.${String(ms).padStart(3, '0')}` : `${base} ${time}`;
+}
+
 export function SummaryCards({ aggregates, totalHosts, history }) {
   const cards = [
     { label: 'Critical', value: aggregates.byLevel.critical || 0, accent: palette.critical },
@@ -24,10 +35,7 @@ export function SummaryCards({ aggregates, totalHosts, history }) {
   const rawFallback = history?.map((h) => h.timestamp).sort().at(-1);
   const lastScanRaw = aggregates.lastUpdatedRaw || rawFallback;
   const lastScanIso = aggregates.lastUpdated;
-  const lastScan =
-    (lastScanRaw && lastScanRaw.replace('T', ' ').replace('Z', '')) ||
-    (lastScanIso && lastScanIso.replace('T', ' ').replace('Z', '')) ||
-    null;
+  const lastScan = formatTimestamp(lastScanRaw) || formatTimestamp(lastScanIso);
 
   return (
     <div className="grid five">
