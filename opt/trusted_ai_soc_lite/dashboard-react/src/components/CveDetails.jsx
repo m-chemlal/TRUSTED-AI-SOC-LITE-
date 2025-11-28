@@ -25,7 +25,20 @@ export function CveDetails({ cveTable }) {
               <tbody>
                 {cveTable.map((row, idx) => (
                   <tr key={`${row.cve}-${idx}`}>
-                    <td style={{ color: '#22d3ee' }}>{row.cve}</td>
+                    <td style={{ color: '#22d3ee' }}>
+                      {row.cve ? (
+                        <a
+                          href={`https://nvd.nist.gov/vuln/detail/${row.cve}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="cve-link"
+                        >
+                          {row.cve}
+                        </a>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                     <td>{row.host}</td>
                     <td>
                       <span className={`pill ${row.risk_level?.toLowerCase() || ''}`}>

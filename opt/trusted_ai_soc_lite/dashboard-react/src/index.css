@@ -254,6 +254,16 @@ body {
   font-size: 14px;
 }
 
+.cve-link {
+  color: #22d3ee;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cve-link:hover {
+  text-decoration: underline;
+}
+
 .table th {
   color: #0f172a;
   font-weight: 700;
