@@ -21,8 +21,13 @@ export function SummaryCards({ aggregates, totalHosts, history }) {
     },
   ];
 
-  const lastScanIso = aggregates.lastUpdated || history?.map((h) => h.timestamp).sort().at(-1);
-  const lastScan = lastScanIso ? new Date(lastScanIso).toISOString().replace('T', ' ').replace('Z', '') : null;
+  const rawFallback = history?.map((h) => h.timestamp).sort().at(-1);
+  const lastScanRaw = aggregates.lastUpdatedRaw || rawFallback;
+  const lastScanIso = aggregates.lastUpdated;
+  const lastScan =
+    (lastScanRaw && lastScanRaw.replace('T', ' ').replace('Z', '')) ||
+    (lastScanIso && lastScanIso.replace('T', ' ').replace('Z', '')) ||
+    null;
 
   return (
     <div className="grid five">

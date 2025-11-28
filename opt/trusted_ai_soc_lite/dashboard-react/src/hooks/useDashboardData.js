@@ -15,13 +15,15 @@ async function fetchJson(path) {
   return res.json();
 }
 
-function latestIso(timestamps = []) {
+function latestTimestamp(timestamps = []) {
   const parsed = timestamps
     .filter(Boolean)
-    .map((t) => Date.parse(t))
-    .filter((n) => !Number.isNaN(n))
-    .sort((a, b) => a - b);
-  return parsed.length ? new Date(parsed.at(-1)).toISOString() : null;
+    .map((t) => ({ raw: t, value: Date.parse(t) }))
+    .filter(({ value }) => !Number.isNaN(value))
+    .sort((a, b) => a.value - b.value);
+  if (!parsed.length) return { raw: null, iso: null };
+  const latest = parsed.at(-1);
+  return { raw: latest.raw, iso: new Date(latest.value).toISOString() };
 }
 
 export function computeAggregates(iaDecisions, history) {
@@ -39,7 +41,7 @@ export function computeAggregates(iaDecisions, history) {
           iaDecisions.length,
       )
     : 0;
-  const lastUpdated = latestIso([
+  const lastUpdated = latestTimestamp([
     ...iaDecisions.map((i) => i.timestamp),
     ...history.map((h) => h.timestamp),
   ]);
@@ -53,7 +55,13 @@ export function computeAggregates(iaDecisions, history) {
       scan_id: i.scan_id,
     })),
   );
-  return { byLevel, avgScore, lastUpdated, cveTable };
+  return {
+    byLevel,
+    avgScore,
+    lastUpdated: lastUpdated.iso,
+    lastUpdatedRaw: lastUpdated.raw,
+    cveTable,
+  };
 }
 
 export function useDashboardData() {
