@@ -143,3 +143,86 @@ Cellule (ou pile logicielle) qui collecte, corrèle et réagit aux événements 
 - **Résumé** : ce chapitre a posé les notions de base (système d’information, menaces, scanning, ML, XAI, réponse, audit) nécessaires pour concevoir TRUSTED-AI-SOC-LITE.
 - **Importance pour la suite** : ces fondations théoriques justifient les choix du Chapitre 3 (architecture logicielle et déploiement Debian) et garantissent la cohérence du pipeline Nmap ➜ IA/XAI ➜ réponse automatique.
 - **Transition** : le chapitre suivant décrit la conception détaillée et l’implémentation de la solution complète.
+
+## 2.10 Diagrammes UML (vue synthétique du projet)
+
+Les diagrammes ci-dessous offrent une vue compacte et standardisée (UML) des interactions clés du pipeline Nmap ➜ IA/XAI ➜ Réponse, sans dépendance à un SIEM externe.
+
+### 2.10.1 Diagramme de séquence — de la découverte au blocage
+
+```mermaid
+sequenceDiagram
+    participant Ops as Ops (humain)
+    participant Run as run_core.sh / run_scan.sh
+    participant Nmap as Nmap + NSE
+    participant Parser as parse_nmap.py
+    participant IA as ai_engine/analyse_scan.py
+    participant Resp as response_engine/responder.py
+    Ops->>Run: Lance le profil de scan
+    Run->>Nmap: Exécute scan (ports + scripts vuln/TI)
+    Nmap-->>Run: Fichier XML
+    Run->>Parser: Convertit XML ➜ JSON riche
+    Parser-->>Run: Rapport JSON (ports, CVE, scripts)
+    Run->>IA: Scoring + explications XAI
+    IA-->>Run: Logs IA (ia_events.log) + audit
+    Run->>Resp: Déclenche la réponse auto
+    Resp-->>Ops: Journalise action (block/notify)
+```
+
+### 2.10.2 Diagramme de cas d’utilisation — SOC local sans SIEM
+
+```mermaid
+usecaseDiagram
+    actor "Opérateur SOC" as Ops
+    actor "Hôte scanné" as Host
+
+    rectangle "TRUSTED-AI-SOC-LITE" {
+        usecase UC1 as "Lancer un scan Nmap"
+        usecase UC2 as "Analyser les résultats (IA/XAI)"
+        usecase UC3 as "Consulter les journaux IA"
+        usecase UC4 as "Appliquer une réponse automatique"
+        usecase UC5 as "Exporter l’audit (JSON)"
+    }
+
+    Ops --> UC1
+    Ops --> UC2
+    Ops --> UC3
+    Ops --> UC5
+    UC1 --> Host
+    UC1 --> UC2
+    UC2 --> UC3
+    UC2 --> UC4
+    UC4 --> Host
+```
+
+### 2.10.3 Diagramme d’activité — pipeline complet
+
+```mermaid
+flowchart TD
+    A([Démarrer run_core.sh]) --> B[Découverte des cibles (auto ou targets.txt)]
+    B --> C[Scan Nmap (profil choisi)]
+    C --> D[Parse XML ➜ JSON]
+    D --> E[Extraction de features + TI]
+    E --> F[Scoring ML/heuristique]
+    F --> G[Explications XAI (SHAP/LIME opc.)]
+    G --> H[Écriture logs IA + audit]
+    H --> I{Niveau de risque ?}
+    I -->|Low/Medium| J[Traçabilité uniquement]
+    I -->|High/Critical| K[Réponse auto: UFW/alertes]
+    J --> L([Fin])
+    K --> L
+```
+
+### 2.10.4 Diagramme d’état / transition — cycle d’un hôte scanné
+
+```mermaid
+stateDiagram-v2
+    [*] --> Découvert : cible listée/par auto-discovery
+    Découvert --> Scanné : Nmap termine
+    Scanné --> Analysé : JSON parsé et features construites
+    Analysé --> Classé : score ML + niveau de risque
+    Classé --> Répondu : blocage/notification si High/Critical
+    Classé --> Journalisé : si Low/Medium, audit uniquement
+    Répondu --> Journalisé : action inscrite dans response_actions.json
+    Journalisé --> [*]
+```
