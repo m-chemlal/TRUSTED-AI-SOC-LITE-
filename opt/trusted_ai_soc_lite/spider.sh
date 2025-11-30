@@ -54,14 +54,20 @@ USAGE
 }
 
 banner() {
-  printf "${C_PURPLE}${C_BOLD}██████${C_TEAL}██████${C_BLUE}██████${C_GREEN}██████${C_RESET}\n"
-  printf "${C_PURPLE}${C_BOLD}██${C_RESET}  ${C_TEAL}TRUSTED${C_RESET}  ${C_BLUE}AI SOC LITE${C_RESET}  ${C_GREEN}SPIDER${C_RESET}\n"
-  printf "${C_PURPLE}${C_BOLD}██████${C_TEAL}██████${C_BLUE}██████${C_GREEN}██████${C_RESET}\n"
-  printf "${C_TEAL}${C_BOLD}┌──────────────────────────────────────────────────────────────┐${C_RESET}\n"
-  printf "${C_TEAL}${C_BOLD}│${C_RESET}  ${C_CYAN}Scan → IA/XAI → Response${C_RESET}  ${C_TEAL}${C_BOLD}│  Autopilot Launcher  │${C_RESET}\n"
-  printf "${C_TEAL}${C_BOLD}└──────────────────────────────────────────────────────────────┘${C_RESET}\n"
-  printf "${C_MAGENTA}${C_BOLD}Hello to TRUSTED AI SOC LITE — SPIDER mode engaged at %s${C_RESET}\n" "${START_TIME}"
+  cat <<"EOF" | sed "s/<P>/${C_PURPLE}${C_BOLD}/g; s/<T>/${C_TEAL}${C_BOLD}/g; s/<B>/${C_BLUE}${C_BOLD}/g; s/<G>/${C_GREEN}${C_BOLD}/g; s/<C>/${C_CYAN}${C_BOLD}/g; s/<R>/${C_RESET}/g"
+<P>███████<T>███████<B>███████<G>███████<R>
+<P>██   ██<T>██   ██<B>██   ██<G>██   ██<R>   <C>TRUSTED AI SOC LITE</C>
+<P>███████<T>███████<B>███████<G>███████<R>   <C>SPIDER LAUNCHER</C>
+<P>██     <T>██     <B>██     <G>██     <R>
+<P>██     <T>██     <B>██     <G>██     <R>
+<T>┌──────────────────────────────────────────────────────────────┐<R>
+<T>│<R>  <C>Scan → IA/XAI → Response</C>  <T>│<R>  <C>Autopilot · Single Command</C>  <T>│<R>
+<T>└──────────────────────────────────────────────────────────────┘<R>
+EOF
+
+  printf "%bHello to TRUSTED AI SOC LITE — SPIDER mode engaged at %s%b\n" "${C_MAGENTA}${C_BOLD}" "${START_TIME}" "${C_RESET}"
   printf "%bMode:%b %s    %bProfile:%b %s\n" "${C_PURPLE}${C_BOLD}" "${C_RESET}" "${MODE}" "${C_YELLOW}${C_BOLD}" "${C_RESET}" "${PROFILE}"
+  printf "%bUse --help for options. Stay lethal. 🕷️%b\n" "${C_TEAL}${C_BOLD}" "${C_RESET}"
 }
 
 launch_dashboard() {
