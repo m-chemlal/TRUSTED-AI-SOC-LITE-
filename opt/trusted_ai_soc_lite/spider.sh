@@ -18,15 +18,15 @@ RESPONDER_EXTRA_ARGS=""
 TI_OFFLINE=0
 START_TIME="$(date -Is)"
 
-C_RESET="\033[0m"
-C_BOLD="\033[1m"
-C_CYAN="\033[96m"
-C_MAGENTA="\033[95m"
-C_YELLOW="\033[93m"
-C_GREEN="\033[92m"
-C_BLUE="\033[94m"
-C_PURPLE="\033[38;5;135m"
-C_TEAL="\033[38;5;45m"
+C_RESET=$'\033[0m'
+C_BOLD=$'\033[1m'
+C_CYAN=$'\033[96m'
+C_MAGENTA=$'\033[95m'
+C_YELLOW=$'\033[93m'
+C_GREEN=$'\033[92m'
+C_BLUE=$'\033[94m'
+C_PURPLE=$'\033[38;5;135m'
+C_TEAL=$'\033[38;5;45m'
 
 usage() {
   cat <<'USAGE'
@@ -54,20 +54,19 @@ USAGE
 }
 
 banner() {
-  cat <<"EOF" | sed "s/<P>/${C_PURPLE}${C_BOLD}/g; s/<T>/${C_TEAL}${C_BOLD}/g; s/<B>/${C_BLUE}${C_BOLD}/g; s/<G>/${C_GREEN}${C_BOLD}/g; s/<C>/${C_CYAN}${C_BOLD}/g; s/<R>/${C_RESET}/g"
-<P>███████<T>███████<B>███████<G>███████<R>
-<P>██   ██<T>██   ██<B>██   ██<G>██   ██<R>   <C>TRUSTED AI SOC LITE</C>
-<P>███████<T>███████<B>███████<G>███████<R>   <C>SPIDER LAUNCHER</C>
-<P>██     <T>██     <B>██     <G>██     <R>
-<P>██     <T>██     <B>██     <G>██     <R>
-<T>┌──────────────────────────────────────────────────────────────┐<R>
-<T>│<R>  <C>Scan → IA/XAI → Response</C>  <T>│<R>  <C>Autopilot · Single Command</C>  <T>│<R>
-<T>└──────────────────────────────────────────────────────────────┘<R>
-EOF
+  local banner_lines=(
+    "${C_PURPLE}${C_BOLD}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${C_RESET}"
+    "${C_PURPLE}${C_BOLD}┃${C_RESET}  ${C_TEAL}${C_BOLD}SPIDER LAUNCHER${C_RESET} · ${C_GREEN}${C_BOLD}TRUSTED AI SOC LITE${C_RESET}                         ${C_PURPLE}${C_BOLD}┃${C_RESET}"
+    "${C_PURPLE}${C_BOLD}┃${C_RESET}  ${C_BLUE}${C_BOLD}Scan → IA/XAI → Response${C_RESET} · ${C_CYAN}${C_BOLD}Autopilot · Single Command${C_RESET}         ${C_PURPLE}${C_BOLD}┃${C_RESET}"
+    "${C_PURPLE}${C_BOLD}┃${C_RESET}  ${C_MAGENTA}${C_BOLD}🕷  Operational readiness — one command to run it all${C_RESET}          ${C_PURPLE}${C_BOLD}┃${C_RESET}"
+    "${C_PURPLE}${C_BOLD}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${C_RESET}"
+  )
 
-  printf "%bHello to TRUSTED AI SOC LITE — SPIDER mode engaged at %s%b\n" "${C_MAGENTA}${C_BOLD}" "${START_TIME}" "${C_RESET}"
+  printf "%b\n" "${banner_lines[@]}"
+
+  printf "\n%bHello to TRUSTED AI SOC LITE — SPIDER mode engaged at %s%b\n" "${C_MAGENTA}${C_BOLD}" "${START_TIME}" "${C_RESET}"
   printf "%bMode:%b %s    %bProfile:%b %s\n" "${C_PURPLE}${C_BOLD}" "${C_RESET}" "${MODE}" "${C_YELLOW}${C_BOLD}" "${C_RESET}" "${PROFILE}"
-  printf "%bUse --help for options. Stay lethal. 🕷️%b\n" "${C_TEAL}${C_BOLD}" "${C_RESET}"
+  printf "%bUse --help for options. Stay lethal. 🕷️%b\n\n" "${C_TEAL}${C_BOLD}" "${C_RESET}"
 }
 
 launch_dashboard() {
