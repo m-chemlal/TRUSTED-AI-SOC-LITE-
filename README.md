@@ -197,6 +197,8 @@ En suivant ces étapes, vous passez du clone initial jusqu'aux fichiers de sorti
 
 📘 Pour un rappel synthétique du rôle de chaque fichier/dossier, voir `docs/FILE_ROLES.md`.
 
+🧭 Besoin d’un cheminement détaillé de l’exécution (ordre des scripts, commandes et vérifications) ? Consultez `docs/SCAN_TO_DASHBOARD_STEPS.md`.
+
 ## 3. Utilisation des scripts
 
 ### `run_core.sh`
