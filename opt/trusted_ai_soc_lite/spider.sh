@@ -56,23 +56,20 @@ USAGE
 
 banner() {
   local top="${C_PURPLE}${C_BOLD}╔════════════════════════════════════════════════════════════════════╗${C_RESET}"
-  local mid="${C_PURPLE}${C_BOLD}╚════════════════════════════════════════════════════════════════════╝${C_RESET}"
+  local bottom="${C_PURPLE}${C_BOLD}╚════════════════════════════════════════════════════════════════════╝${C_RESET}"
   local spider_word="${C_MAGENTA}${C_BOLD}SPIDER${C_RESET}"
-  local block=(
-    "${top}"
-    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_PURPLE}${C_BOLD}██████╗${C_RESET}${C_TEAL}${C_BOLD} ██████╗${C_RESET}${C_BLUE}${C_BOLD} ██╗██████╗ ███████╗██████╗${C_RESET}           ${C_PURPLE}${C_BOLD}║${C_RESET}"
-    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_PURPLE}${C_BOLD}██╔══██╗${C_RESET}${C_TEAL}${C_BOLD}██╔═══██╗${C_RESET}${C_BLUE}${C_BOLD} ██║██╔══██╗██╔════╝██╔══██╗${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
-    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_PURPLE}${C_BOLD}██████╔╝${C_RESET}${C_TEAL}${C_BOLD}██║   ██║${C_RESET}${C_BLUE}${C_BOLD} ██║██████╔╝█████╗  ██████╔╝${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
-    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_PURPLE}${C_BOLD}██╔══██╗${C_RESET}${C_TEAL}${C_BOLD}██║   ██║${C_RESET}${C_BLUE}${C_BOLD} ██║██╔══██╗██╔══╝  ██╔══██╗${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
-    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_PURPLE}${C_BOLD}██████╔╝${C_RESET}${C_TEAL}${C_BOLD}╚██████╔╝${C_RESET}${C_BLUE}${C_BOLD} ██║██║  ██║███████╗██║  ██║${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
-    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_PURPLE}${C_BOLD}╚═════╝ ${C_RESET}${C_TEAL}${C_BOLD} ╚═════╝ ${C_RESET}${C_BLUE}${C_BOLD} ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
-    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_GREEN}${C_BOLD}TRUSTED AI SOC LITE${C_RESET} · ${C_CYAN}${C_BOLD}Nmap → IA/XAI → Response Autopilot${C_RESET}       ${C_PURPLE}${C_BOLD}║${C_RESET}"
-    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_YELLOW}${C_BOLD}Mode:${C_RESET} ${MODE}   ${C_YELLOW}${C_BOLD}Profile:${C_RESET} ${PROFILE}   ${C_YELLOW}${C_BOLD}Start:${C_RESET} ${START_TIME_HUMAN}           ${C_PURPLE}${C_BOLD}║${C_RESET}"
-    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_TEAL}Hello to TRUSTED AI SOC LITE · Use --help for options · Stay lethal 🕷️${C_RESET}   ${C_PURPLE}${C_BOLD}║${C_RESET}"
-    "${mid}"
-  )
 
-  printf "%b\n" "${block[@]}"
+  printf "%b\n" "${top}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_BLUE}${C_BOLD}██████╗ ██████╗ ██╗██████╗ ███████╗██████╗${C_RESET}           ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_TEAL}${C_BOLD}██╔══██╗██╔═══██╗██║██╔══██╗██╔════╝██╔══██╗${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_BLUE}${C_BOLD}██████╔╝██║   ██║██║██████╔╝█████╗  ██████╔╝${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_TEAL}${C_BOLD}██╔══██╗██║   ██║██║██╔══██╗██╔══╝  ██╔══██╗${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_BLUE}${C_BOLD}██████╔╝╚██████╔╝██║██║  ██║███████╗██║  ██║${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_TEAL}${C_BOLD}╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝${C_RESET}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_GREEN}${C_BOLD}TRUSTED AI SOC LITE${C_RESET} · ${C_CYAN}${C_BOLD}Nmap → IA/XAI → Response Autopilot${C_RESET}   ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_YELLOW}${C_BOLD}Mode:${C_RESET} ${MODE}   ${C_YELLOW}${C_BOLD}Profile:${C_RESET} ${PROFILE}   ${C_YELLOW}${C_BOLD}Start:${C_RESET} ${START_TIME_HUMAN}           ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_TEAL}Hello to TRUSTED AI SOC LITE · Use --help for options · Stay lethal 🕷️${C_RESET} ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${bottom}"
 
   printf "%b   [>] Launcher:%b ${spider_word} orchestrator · Debian native\n" "${C_TEAL}${C_BOLD}" "${C_RESET}"
   printf "%b   [>] Profile :%b %s\n" "${C_TEAL}${C_BOLD}" "${C_RESET}" "${PROFILE}"
@@ -80,6 +77,7 @@ banner() {
   printf "%b   [>] Pipeline:%b Nmap → IA/XAI → Response\n" "${C_TEAL}${C_BOLD}" "${C_RESET}"
   printf "%b   [>] Start   :%b %s\n\n" "${C_TEAL}${C_BOLD}" "${C_RESET}" "${START_TIME_HUMAN}"
 }
+
 launch_dashboard() {
   if [ ! -d "${DASHBOARD_DIR}" ]; then
     echo "[WARN] Tableau React introuvable (${DASHBOARD_DIR})." >&2
