@@ -23,6 +23,10 @@ C_BOLD="\033[1m"
 C_CYAN="\033[96m"
 C_MAGENTA="\033[95m"
 C_YELLOW="\033[93m"
+C_GREEN="\033[92m"
+C_BLUE="\033[94m"
+C_PURPLE="\033[38;5;135m"
+C_TEAL="\033[38;5;45m"
 
 usage() {
   cat <<'USAGE'
@@ -50,15 +54,14 @@ USAGE
 }
 
 banner() {
-  cat <<"BANNER"
-╔══════════════════════════════════════════════════════════════╗
-║                     TRUSTED AI SOC LITE                      ║
-╠══════════════════════════════════════════════════════════════╣
-║  Scan  →  IA/XAI  →  Response  (Spider orchestration)        ║
-╚══════════════════════════════════════════════════════════════╝
-BANNER
-  printf "%bHello from SPIDER : launching the pipeline at %s%b\n" "${C_CYAN}${C_BOLD}" "${START_TIME}" "${C_RESET}"
-  printf "%bMode:%b %s    %bProfile:%b %s\n" "${C_MAGENTA}${C_BOLD}" "${C_RESET}" "${MODE}" "${C_YELLOW}${C_BOLD}" "${C_RESET}" "${PROFILE}"
+  printf "${C_PURPLE}${C_BOLD}██████${C_TEAL}██████${C_BLUE}██████${C_GREEN}██████${C_RESET}\n"
+  printf "${C_PURPLE}${C_BOLD}██${C_RESET}  ${C_TEAL}TRUSTED${C_RESET}  ${C_BLUE}AI SOC LITE${C_RESET}  ${C_GREEN}SPIDER${C_RESET}\n"
+  printf "${C_PURPLE}${C_BOLD}██████${C_TEAL}██████${C_BLUE}██████${C_GREEN}██████${C_RESET}\n"
+  printf "${C_TEAL}${C_BOLD}┌──────────────────────────────────────────────────────────────┐${C_RESET}\n"
+  printf "${C_TEAL}${C_BOLD}│${C_RESET}  ${C_CYAN}Scan → IA/XAI → Response${C_RESET}  ${C_TEAL}${C_BOLD}│  Autopilot Launcher  │${C_RESET}\n"
+  printf "${C_TEAL}${C_BOLD}└──────────────────────────────────────────────────────────────┘${C_RESET}\n"
+  printf "${C_MAGENTA}${C_BOLD}Hello to TRUSTED AI SOC LITE — SPIDER mode engaged at %s${C_RESET}\n" "${START_TIME}"
+  printf "%bMode:%b %s    %bProfile:%b %s\n" "${C_PURPLE}${C_BOLD}" "${C_RESET}" "${MODE}" "${C_YELLOW}${C_BOLD}" "${C_RESET}" "${PROFILE}"
 }
 
 launch_dashboard() {
