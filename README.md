@@ -46,6 +46,14 @@ Aucun composant Wazuh ni dashboard externe n'est requis : les journaux restent l
    * Le wrapper rafraîchit les cibles (sauf `--no-target-refresh`), lance Nmap, convertit XML→JSON, exécute l'IA/XAI et le moteur de réponse.
    * Pour un essai rapide : `./run_core.sh --profile fast --ti-offline --response-off`.
 
+5bis. **Lanceur SPIDER (tout-en-un avec bannière colorée)**
+   ```bash
+   cd /opt/trusted_ai_soc_lite
+   ./spider.sh --mode scan+dashboard --profile balanced
+   ```
+   * `--mode scan` pour le pipeline seul, `--mode scan+dashboard` pour démarrer aussi l'interface React (si npm est présent).
+   * `--dry-run` affiche les commandes sans exécution ; `--dashboard-port` change le port (par défaut 5173).
+
 6. **Publier le projet sur GitHub (répétable)**
    ```bash
    # depuis le répertoire du dépôt cloné
