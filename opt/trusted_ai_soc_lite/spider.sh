@@ -93,7 +93,11 @@ launch_dashboard() {
     (cd "${DASHBOARD_DIR}" && npm install >/dev/null)
   fi
 
-  (cd "${DASHBOARD_DIR}" && nohup npm run dev -- --host 0.0.0.0 --port "${DASHBOARD_PORT}" >>"${log_file}" 2>&1 &)
+  # Run the dashboard in a background subshell so $! is defined even with "set -u".
+  (
+    cd "${DASHBOARD_DIR}" &&
+    npm run dev -- --host 0.0.0.0 --port "${DASHBOARD_PORT}" >>"${log_file}" 2>&1
+  ) &
   local dash_pid=$!
   echo "[OK] Dashboard démarré (PID ${dash_pid}) sur http://localhost:${DASHBOARD_PORT}";
   echo "[INFO] Logs: ${log_file}";
