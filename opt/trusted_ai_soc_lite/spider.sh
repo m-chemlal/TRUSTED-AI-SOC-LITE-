@@ -17,6 +17,7 @@ AI_EXTRA_ARGS=""
 RESPONDER_EXTRA_ARGS=""
 TI_OFFLINE=0
 START_TIME="$(date -Is)"
+START_TIME_HUMAN="$(date '+%Y-%m-%d %H:%M')"
 
 C_RESET=$'\033[0m'
 C_BOLD=$'\033[1m'
@@ -54,19 +55,29 @@ USAGE
 }
 
 banner() {
+  local border="${C_PURPLE}${C_BOLD}══════════════════════════════════════════════════════════════${C_RESET}"
   local banner_lines=(
-    "${C_PURPLE}${C_BOLD}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${C_RESET}"
-    "${C_PURPLE}${C_BOLD}┃${C_RESET}  ${C_TEAL}${C_BOLD}SPIDER LAUNCHER${C_RESET} · ${C_GREEN}${C_BOLD}TRUSTED AI SOC LITE${C_RESET}                         ${C_PURPLE}${C_BOLD}┃${C_RESET}"
-    "${C_PURPLE}${C_BOLD}┃${C_RESET}  ${C_BLUE}${C_BOLD}Scan → IA/XAI → Response${C_RESET} · ${C_CYAN}${C_BOLD}Autopilot · Single Command${C_RESET}         ${C_PURPLE}${C_BOLD}┃${C_RESET}"
-    "${C_PURPLE}${C_BOLD}┃${C_RESET}  ${C_MAGENTA}${C_BOLD}🕷  Operational readiness — one command to run it all${C_RESET}          ${C_PURPLE}${C_BOLD}┃${C_RESET}"
-    "${C_PURPLE}${C_BOLD}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${C_RESET}"
+    "${border}"
+    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_MAGENTA}${C_BOLD}███████╗${C_RESET}  ${C_TEAL}${C_BOLD}██████╗ ${C_RESET}${C_BLUE}${C_BOLD} ██╗██████╗ ███████╗██████╗${C_RESET}      ${C_PURPLE}${C_BOLD}║${C_RESET}"
+    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_MAGENTA}${C_BOLD}██╔════╝${C_RESET}  ${C_TEAL}${C_BOLD}██╔══██╗${C_RESET}${C_BLUE}${C_BOLD} ██║██╔══██╗██╔════╝██╔══██╗${C_RESET}     ${C_PURPLE}${C_BOLD}║${C_RESET}"
+    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_MAGENTA}${C_BOLD}███████╗${C_RESET}  ${C_TEAL}${C_BOLD}██████╔╝${C_RESET}${C_BLUE}${C_BOLD} ██║██████╔╝█████╗  ██████╔╝${C_RESET}     ${C_PURPLE}${C_BOLD}║${C_RESET}"
+    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_MAGENTA}${C_BOLD}╚════██║${C_RESET}  ${C_TEAL}${C_BOLD}██╔══██╗${C_RESET}${C_BLUE}${C_BOLD} ██║██╔═══╝ ██╔══╝  ██╔══██╗${C_RESET}     ${C_PURPLE}${C_BOLD}║${C_RESET}"
+    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_MAGENTA}${C_BOLD}███████║${C_RESET}  ${C_TEAL}${C_BOLD}██║  ██║${C_RESET}${C_BLUE}${C_BOLD} ██║██║     ███████╗██║  ██║${C_RESET}     ${C_PURPLE}${C_BOLD}║${C_RESET}"
+    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_MAGENTA}${C_BOLD}╚══════╝${C_RESET}  ${C_TEAL}${C_BOLD}╚═╝  ╚═╝${C_RESET}${C_BLUE}${C_BOLD} ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝${C_RESET}     ${C_PURPLE}${C_BOLD}║${C_RESET}"
+    "${border}"
+    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_GREEN}${C_BOLD}TRUSTED AI SOC LITE${C_RESET} · ${C_CYAN}${C_BOLD}Nmap → IA/XAI → Response Autopilot${C_RESET}      ${C_PURPLE}${C_BOLD}║${C_RESET}"
+    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_YELLOW}${C_BOLD}Mode:${C_RESET} ${MODE}   ${C_YELLOW}${C_BOLD}Profile:${C_RESET} ${PROFILE}   ${C_YELLOW}${C_BOLD}Started:${C_RESET} ${START_TIME_HUMAN}          ${C_PURPLE}${C_BOLD}║${C_RESET}"
+    "${C_PURPLE}${C_BOLD}║${C_RESET}   ${C_TEAL}Use --help for options · Hello to TRUSTED AI SOC LITE · Stay lethal 🕷️${C_RESET}  ${C_PURPLE}${C_BOLD}║${C_RESET}"
+    "${border}"
   )
 
   printf "%b\n" "${banner_lines[@]}"
 
-  printf "\n%bHello to TRUSTED AI SOC LITE — SPIDER mode engaged at %s%b\n" "${C_MAGENTA}${C_BOLD}" "${START_TIME}" "${C_RESET}"
-  printf "%bMode:%b %s    %bProfile:%b %s\n" "${C_PURPLE}${C_BOLD}" "${C_RESET}" "${MODE}" "${C_YELLOW}${C_BOLD}" "${C_RESET}" "${PROFILE}"
-  printf "%bUse --help for options. Stay lethal. 🕷️%b\n\n" "${C_TEAL}${C_BOLD}" "${C_RESET}"
+  printf "%b   [>] Version :%b SPIDER orchestrator · Debian native\n" "${C_TEAL}${C_BOLD}" "${C_RESET}"
+  printf "%b   [>] Profile :%b %s\n" "${C_TEAL}${C_BOLD}" "${C_RESET}" "${PROFILE}"
+  printf "%b   [>] Mode    :%b %s\n" "${C_TEAL}${C_BOLD}" "${C_RESET}" "${MODE}"
+  printf "%b   [>] Pipeline:%b Nmap → IA/XAI → Response\n" "${C_TEAL}${C_BOLD}" "${C_RESET}"
+  printf "%b   [>] Start   :%b %s\n\n" "${C_TEAL}${C_BOLD}" "${C_RESET}" "${START_TIME_HUMAN}"
 }
 
 launch_dashboard() {
