@@ -1,0 +1,41 @@
+# Comment le dashboard fonctionne (TRUSTED AI SOC LITE)
+
+Ce fichier décrit le fonctionnement du dashboard (version React) livré avec TRUSTED AI SOC LITE, ainsi que les prérequis minimaux pour l'afficher après un scan.
+
+1) **Données consommées**
+   - Les rapports `audit/scan_history.json`, `audit/ia_decisions.json` et `audit/response_actions.json` contiennent respectivement l'historique des scans, les verdicts IA/XAI et les actions automatiques.
+   - Si aucune donnée n'est disponible, les échantillons fournis dans `dashboard-react/src/sample/*.json` peuvent être synchronisés dans `dashboard-react/public/data/` via `dashboard-react/sync_data.sh --seed`.
+
+2) **Production des données**
+   - Lancer un scan via `./opt/trusted_ai_soc_lite/run_all.sh --profile full` (ou le profile de votre choix) pour générer les JSON d'audit.
+   - L'IA/XAI (dans `ai_engine/`) enrichit les résultats Nmap et enregistre les verdicts dans `audit/ia_decisions.json`.
+   - Le moteur de réponse (dans `response_engine/`) journalise les actions dans `audit/response_actions.json`.
+
+3) **Préparation du dashboard**
+   - Depuis la racine du projet :
+     ```bash
+     cd opt/trusted_ai_soc_lite/dashboard-react
+     ./sync_data.sh            # copie les JSON d'audit dans public/data
+     npm install               # première exécution uniquement
+     npm run dev -- --host 0.0.0.0 --port 5173
+     ```
+   - Le dashboard lit `public/data/*.json` et expose l'interface sur http://localhost:5173.
+
+4) **Visualisation**
+   - La page affiche les KPI (scores de risque, distributions), un filtre par `scan_id`, les CVE détaillées avec liens NVD, et les actions/réponses associées.
+   - Si vous changez de scan, les tableaux et graphes se filtrent automatiquement pour ne montrer que les données de cette exécution.
+
+5) **Mode démo rapide**
+   - Sans lancer de scan, exécuter :
+     ```bash
+     cd opt/trusted_ai_soc_lite/dashboard-react
+     ./sync_data.sh --seed     # charge les jeux d'exemple
+     npm install
+     npm run dev -- --host 0.0.0.0 --port 5173
+     ```
+   - Vous obtenez immédiatement un aperçu du dashboard avec des données simulées.
+
+6) **Points clés**
+   - Le dashboard est purement frontal : il lit des JSON statiques, aucune dépendance Wazuh.
+   - Pour actualiser les vues après un nouveau scan, relancer `./sync_data.sh` puis rafraîchir la page.
+   - Les couleurs et graphiques sont déjà configurés ; seule la présence des fichiers JSON est nécessaire.
