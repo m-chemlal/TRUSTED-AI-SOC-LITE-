@@ -61,9 +61,9 @@ banner() {
 
   printf "%b\n" "${top}"
   printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_BLUE}${C_BOLD} ____  ____ ___ ____  _____ ____  ${C_RESET}             ${C_PURPLE}${C_BOLD}║${C_RESET}"
-  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_TEAL}${C_BOLD}/ ___||  _ \\_ _|    \\| ____|  _ \\ ${C_RESET}            ${C_PURPLE}${C_BOLD}║${C_RESET}"
-  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_BLUE}${C_BOLD}\\___ \\| |_) | ||    || _| | |_) |${C_RESET}            ${C_PURPLE}${C_BOLD}║${C_RESET}"
-  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_TEAL}${C_BOLD} ___) |  __/| ||    || |___|  _ < ${C_RESET}             ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_TEAL}${C_BOLD}/ ___||  _ \\_ _/ ___|| ____|  _ \\ ${C_RESET}            ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_BLUE}${C_BOLD}\\___ \\| |_) | |\\___ \\|  _| | |_) |${C_RESET}            ${C_PURPLE}${C_BOLD}║${C_RESET}"
+  printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_TEAL}${C_BOLD} ___) |  __/| | ___) | |___|  _ < ${C_RESET}             ${C_PURPLE}${C_BOLD}║${C_RESET}"
   printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_BLUE}${C_BOLD}|____/|_|  |___|____/|_____|_| \\_\\${C_RESET}            ${C_PURPLE}${C_BOLD}║${C_RESET}"
   printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_GREEN}${C_BOLD}TRUSTED AI SOC LITE${C_RESET} · ${C_CYAN}${C_BOLD}Nmap → IA/XAI → Response Autopilot${C_RESET}   ${C_PURPLE}${C_BOLD}║${C_RESET}"
   printf "%b\n" "${C_PURPLE}${C_BOLD}║${C_RESET}  ${C_YELLOW}${C_BOLD}Mode:${C_RESET} ${MODE}   ${C_YELLOW}${C_BOLD}Profile:${C_RESET} ${PROFILE}   ${C_YELLOW}${C_BOLD}Start:${C_RESET} ${START_TIME_HUMAN}           ${C_PURPLE}${C_BOLD}║${C_RESET}"

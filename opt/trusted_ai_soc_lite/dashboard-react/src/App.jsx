@@ -5,6 +5,7 @@ import { HostTable } from './components/HostTable.jsx';
 import { RiskBars } from './components/RiskBars.jsx';
 import { RiskDonut } from './components/RiskDonut.jsx';
 import { computeAggregates, useDashboardData } from './hooks/useDashboardData.js';
+import { Logo } from './components/Logo.jsx';
 
 function Skeleton() {
   return <div style={{ color: '#94a3b8' }}>Loading data…</div>;
@@ -59,10 +60,13 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="header">
-        <div>
-          <p className="eyebrow">Trusted AI SOC Lite</p>
-          <h1>Risk & Vulnerability Overview</h1>
-          <small className="muted">Nmap → IA/XAI → Response — modern single-page view</small>
+        <div className="brand-row">
+          <Logo size={58} />
+          <div>
+            <p className="eyebrow">Trusted AI SOC Lite</p>
+            <h1>Risk & Vulnerability Overview</h1>
+            <small className="muted">Nmap → IA/XAI → Response — modern single-page view</small>
+          </div>
         </div>
         <div className="badge">Live</div>
       </header>
