@@ -1,0 +1,7 @@
+node_modules
+npm-debug.log*
+dist
+.vite
+public/data/ia_decisions.json
+public/data/response_actions.json
+public/data/scan_history.json
